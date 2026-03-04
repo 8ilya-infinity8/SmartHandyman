@@ -1,4 +1,11 @@
+from passlib.context import CryptContext
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Configure password hashing with argon2
+password_context = CryptContext(
+    schemes=["argon2"],
+    deprecated="auto",
+)
 
 
 class Settings(BaseSettings):
