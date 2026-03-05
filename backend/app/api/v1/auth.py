@@ -6,12 +6,14 @@ router = APIRouter()
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
+    # outer prefix is already '/api/v1/auth', so we only need '/jwt'
+    prefix="/jwt",
     tags=["auth"],
 )
 
 router.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
+    # registration sits directly under '/api/v1/auth'
+    prefix="",
     tags=["auth"],
 )
