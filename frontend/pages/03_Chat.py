@@ -72,7 +72,6 @@ with st.form(key="message_form"):
         if text.strip():
             try:
                 send_message(chat_id, text)
-                # form submission re-runs script automatically
             except Exception as e:
                 st.error(f"Failed to send: {e}")
         else:
