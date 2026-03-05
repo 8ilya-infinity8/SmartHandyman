@@ -15,7 +15,6 @@ if not chat_id:
 
 st.title(f"Chat {chat_id}")
 
-# style the text input to look like chatgpt
 st.markdown(
     """
     <style>
@@ -42,7 +41,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# load and display messages
 try:
     msgs = get_messages(chat_id)
 except Exception as e:
@@ -64,7 +62,6 @@ else:
     )
 st.markdown("</div>", unsafe_allow_html=True)
 
-# input area
 with st.form(key="message_form"):
     text = st.text_input("", key="message_input", placeholder="Type your message...")
     send = st.form_submit_button("Send")

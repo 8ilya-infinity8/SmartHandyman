@@ -1,7 +1,6 @@
 import streamlit as st
 from api_client import login
 
-# inject a bit of ChatGPT-like dark styling
 st.markdown(
     """
     <style>

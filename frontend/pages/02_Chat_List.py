@@ -5,14 +5,12 @@ from components.sidebar_chats import render_sidebar
 
 st.set_page_config(page_title="Chats")
 
-# ensure token
 if "token" not in st.session_state or not st.session_state.get("token"):
     st.warning("Please log in first.")
     st.stop()
 
 st.title("Chats")
 
-# side bar contains chat list and new chat button
 render_sidebar()
 
 chat_id = st.session_state.get("chat_id")

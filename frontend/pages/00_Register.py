@@ -22,7 +22,6 @@ if "token" in st.session_state and st.session_state.get("token"):
     st.success("You are already logged in.")
     st.write("Use the sidebar to go to the chat list.")
 else:
-    # simple styled box similar to login page
     st.markdown(
         """
         <div style='max-width:400px; margin:auto; padding:20px; border:1px solid #333; border-radius:8px;'>
