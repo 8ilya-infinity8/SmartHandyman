@@ -14,27 +14,27 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "claude").lower()
 
 # Model settings for Claude
-CLAUDE_VISION_MODEL = "claude-haiku-4-5-20251001"
+CLAUDE_VISION_MODEL = "claude-sonnet-4-5-20250514"
 CLAUDE_TEXT_MODEL = "claude-haiku-4-5-20251001"
 
 # Model settings for OpenAI
 OPENAI_VISION_MODEL = "gpt-4o"
 OPENAI_TEXT_MODEL = "gpt-4o-mini"
 
-# Active models based on provider
-if LLM_PROVIDER == "claude":
-    VISION_MODEL = CLAUDE_VISION_MODEL
-    TEXT_MODEL = CLAUDE_TEXT_MODEL
-    ACTIVE_API_KEY = CLAUDE_API_KEY
-elif LLM_PROVIDER == "openai":
+if LLM_PROVIDER == "openai":
     VISION_MODEL = OPENAI_VISION_MODEL
     TEXT_MODEL = OPENAI_TEXT_MODEL
     ACTIVE_API_KEY = OPENAI_API_KEY
 else:
-    # Default to Claude if invalid provider
     VISION_MODEL = CLAUDE_VISION_MODEL
     TEXT_MODEL = CLAUDE_TEXT_MODEL
     ACTIVE_API_KEY = CLAUDE_API_KEY
+
+# System prompt for LLMs
+SYSTEM_PROMPT = """Ты - экспертная система для диагностики и ремонта бытовых устройств. 
+Твоя задача - помогать пользователям с ремонтом техники, сантехники, электрики и других бытовых проблем.
+Отвечай на русском языке, давай конкретные практические инструкции.
+Всегда следуй формату, указанному в запросе пользователя."""
 
 # Safety keywords for dangerous repairs
 DANGER_KEYWORDS = [
@@ -62,6 +62,14 @@ DANGER_KEYWORDS = [
     "voltage",
 ]
 
+VISION_TEMPERATURE = 0.3
+TEXT_TEMPERATURE = 0.7
+DIAGNOSTIC_TEMPERATURE = 0.5
+
+VISION_MAX_TOKENS = 2048
+TEXT_MAX_TOKENS = 4096
+DIAGNOSTIC_MAX_TOKENS = 1024
+
 # RAG settings
-CHROMA_DB_PATH = "./chroma_db"
+CHROMA_DB_PATH = "./rag_store"
 EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
