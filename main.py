@@ -224,10 +224,12 @@ def show_analysis_step():
     """Step 1: Analyze image with Vision LLM."""
     st.header("🔍 Шаг 2: Анализ изображения")
 
-    with st.spinner("Анализирую изображение с помощью Vision AI..."):
-        analyzer = VisionAnalyzer()
-        result = analyzer.analyze_image(st.session_state.uploaded_image)
-        st.session_state.analysis_result = result
+    if not st.session_state.analysis_result:
+        with st.spinner("Анализирую изображение с помощью Vision AI..."):
+            analyzer = VisionAnalyzer()
+            st.session_state.analysis_result = analyzer.analyze_image(st.session_state.uploaded_image)
+
+    result = st.session_state.analysis_result
 
     # Display analysis results
     if "error" in result:
@@ -345,12 +347,15 @@ def show_safety_step():
     """Step 3: Safety check and warnings."""
     st.header("🚨 Шаг 4: Проверка безопасности")
 
-    with st.spinner("Проверяю безопасность ремонта..."):
-        checker = SafetyChecker()
-        safety_info = checker.check_safety(
-            st.session_state.analysis_result, st.session_state.answers
-        )
-        st.session_state.safety_info = safety_info
+    if not st.session_state.safety_info:
+        with st.spinner("Проверяю безопасность ремонта..."):
+            checker = SafetyChecker()
+            st.session_state.safety_info = checker.check_safety(
+                st.session_state.analysis_result, st.session_state.answers
+            )
+
+    checker = SafetyChecker()
+    safety_info = st.session_state.safety_info
 
     # Display safety information
     safety_message = checker.format_safety_message(safety_info)

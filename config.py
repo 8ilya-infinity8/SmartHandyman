@@ -63,5 +63,5 @@ DANGER_KEYWORDS = [
 ]
 
 # RAG settings
-CHROMA_DB_PATH = "./chroma_db"
+CHROMA_DB_PATH = "./rag_store"
 EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
