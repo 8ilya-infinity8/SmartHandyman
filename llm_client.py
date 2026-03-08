@@ -1,8 +1,8 @@
-"""Unified LLM client supporting Claude and OpenAI."""
-
 import base64
 import json
 import re
+import logging
+import time
 from PIL import Image
 import io
 from config import (
@@ -11,16 +11,18 @@ from config import (
     CLAUDE_BASE_URL,
     OPENAI_API_KEY,
     SYSTEM_PROMPT,
+    TEXT_TEMPERATURE,
+    TEXT_MAX_TOKENS,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClient:
     """
     Unified client for LLM operations supporting multiple providers.
-
-    Handles both vision and text tasks with appropriate parameters.
+    Handles both vision and text tasks.
     """
-
     def __init__(self, model_name, use_vision=False, temperature=None, max_tokens=None):
         """
         Initialize LLM client.
@@ -52,23 +54,50 @@ class LLMClient:
                 f"Unsupported LLM provider: {self.provider}. Use 'claude' or 'openai'."
             )
 
-    def generate_content(self, prompt, image=None):
+    def generate_content(self, prompt, image=None, max_retries=3):
         """
         Generate content from text prompt and optional image.
 
         Args:
             prompt: Text prompt
             image: PIL Image or bytes (optional)
+            max_retries: Maximum number of attempts (default 3)
 
         Returns:
             Generated text response
         """
-        if self.provider == "claude":
-            return self._generate_claude(prompt, image)
-        elif self.provider == "openai":
-            return self._generate_openai(prompt, image)
-        else:
-            raise ValueError(f"Unsupported provider: {self.provider}")
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                if self.provider == "claude":
+                    result = self._generate_claude(prompt, image)
+                elif self.provider == "openai":
+                    result = self._generate_openai(prompt, image)
+                else:
+                    raise ValueError(f"Unsupported provider: {self.provider}")
+
+                logger.debug(f"LLM response ({self.model_name}): {result[:500]}")
+                return result
+
+            except Exception as e:
+                last_error = e
+                error_str = str(e).lower()
+
+                if any(word in error_str for word in ["auth", "api_key", "invalid_api", "permission"]):
+                    logger.error(f"Auth/validation error, not retrying: {e}")
+                    raise
+
+                if attempt < max_retries - 1:
+                    wait = 2 ** attempt
+                    logger.warning(
+                        f"API call failed (attempt {attempt + 1}/{max_retries}): {e}. "
+                        f"Retrying in {wait}s..."
+                    )
+                    time.sleep(wait)
+                else:
+                    logger.error(f"API call failed after {max_retries} attempts: {e}")
+
+        raise last_error
 
     def _process_image(self, image):
         """Optimizes the image size and converts into Base64 JPEG."""
@@ -120,9 +149,8 @@ class LLMClient:
         else:
             messages.append({"role": "user", "content": prompt})
 
-        # Use instance max_tokens or default to 4096
-        max_tokens = self.max_tokens if self.max_tokens is not None else 4096
-        temperature = self.temperature if self.temperature is not None else 0.7
+        max_tokens = self.max_tokens if self.max_tokens is not None else TEXT_MAX_TOKENS
+        temperature = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
 
         response = self.client.messages.create(
             model=self.model_name,
@@ -132,7 +160,6 @@ class LLMClient:
             messages=messages,
         )
 
-        # Extract text from response, handling ThinkingBlock and other block types
         text_parts = []
         for block in response.content:
             if hasattr(block, "text"):
@@ -149,10 +176,7 @@ class LLMClient:
         messages = [
             {
                 "role": "system",
-                "content": """Ты - экспертная система для диагностики и ремонта бытовых устройств. 
-Твоя задача - помогать пользователям с ремонтом техники, сантехники, электрики и других бытовых проблем.
-Отвечай на русском языке, давай конкретные практические инструкции.
-Всегда следуй формату, указанному в запросе пользователя.""",
+                "content": SYSTEM_PROMPT,
             }
         ]
 
@@ -177,9 +201,8 @@ class LLMClient:
         else:
             messages.append({"role": "user", "content": prompt})
 
-        # Use instance parameters or defaults
-        temperature = self.temperature if self.temperature is not None else 0.7
-        max_tokens = self.max_tokens if self.max_tokens is not None else 4096
+        temperature = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+        max_tokens = self.max_tokens if self.max_tokens is not None else TEXT_MAX_TOKENS
 
         response = self.client.chat.completions.create(
             model=self.model_name,
@@ -191,26 +214,27 @@ class LLMClient:
         return response.choices[0].message.content
 
     def parse_json_response(self, response_text):
-        """Parse JSON from LLM response with Regex."""
+        """Parse JSON from LLM response."""
         if not response_text:
+            logger.warning("parse_json_response called with empty text")
             return None
 
-        # Try to extract from fenced code block first
         match = re.search(r'```(?:json)?\s*(.*?)\s*```', response_text, re.DOTALL)
         if match:
             text = match.group(1)
         else:
             text = response_text
 
-        # Find outermost JSON object: first '{' to last '}'
         start = text.find('{')
         end = text.rfind('}')
         if start == -1 or end == -1 or end <= start:
+            logger.warning(f"No JSON object found in response: {response_text[:300]}")
             return None
 
         json_str = text[start:end + 1]
 
         try:
             return json.loads(json_str)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON parse failed ({e}). Raw text: {json_str[:300]}")
             return None

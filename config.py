@@ -1,5 +1,3 @@
-"""Configuration settings for the repair assistant."""
-
 import os
 from dotenv import load_dotenv
 
@@ -65,7 +63,6 @@ DANGER_KEYWORDS = [
 VISION_TEMPERATURE = 0.3
 TEXT_TEMPERATURE = 0.7
 DIAGNOSTIC_TEMPERATURE = 0.5
-
 VISION_MAX_TOKENS = 2048
 TEXT_MAX_TOKENS = 4096
 DIAGNOSTIC_MAX_TOKENS = 1024

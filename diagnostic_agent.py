@@ -1,7 +1,8 @@
-"""Interactive diagnostic agent that asks clarifying questions."""
-
+import logging
 from llm_client import LLMClient
 from config import TEXT_MODEL, DIAGNOSTIC_TEMPERATURE, DIAGNOSTIC_MAX_TOKENS
+
+logger = logging.getLogger(__name__)
 
 
 class DiagnosticAgent:
@@ -10,9 +11,7 @@ class DiagnosticAgent:
 
     Uses medium-low temperature for logical, focused questioning.
     """
-
     def __init__(self):
-        # Initialize with diagnostic-specific parameters for logical reasoning
         self.client = LLMClient(
             TEXT_MODEL,
             use_vision=False,
@@ -33,37 +32,24 @@ class DiagnosticAgent:
         Returns:
             list of targeted diagnostic questions
         """
-        # Build context from analysis
-        context = f"""ПЕРВИЧНЫЙ АНАЛИЗ:
-Объект: {analysis_result.get("object", "неизвестно")}
+        context = f"""Объект: {analysis_result.get("object", "неизвестно")}
 Проблема: {analysis_result.get("problem", "неизвестно")}
 Категория: {analysis_result.get("category", "неизвестно")}
 Уровень опасности: {analysis_result.get("danger_level", "неизвестно")}"""
 
         if previous_answers:
-            context += "\n\nУЖЕ ИЗВЕСТНО (ответы пользователя):"
+            context += "\n\nУже известно (ответы пользователя):"
             for q, a in previous_answers.items():
                 context += f"\n• {q}\n  → {a}"
 
         prompt = f"""{context}
 
-Ты - опытный мастер-диагност с 20-летним стажем. Твоя задача - задать ЦЕЛЕВЫЕ вопросы для точной диагностики.
+Задай 3-5 вопросов для точной диагностики. Требования:
+- Каждый вопрос должен исключать или подтверждать конкретную причину поломки
+- Формулируй понятно для обычного человека, без технического жаргона
+- Не повторяй вопросы, на которые уже есть ответы выше
 
-ПРИНЦИПЫ ДИАГНОСТИКИ:
-1. Каждый вопрос должен исключать или подтверждать конкретные причины
-2. Вопросы должны быть понятны обычному человеку (без технического жаргона)
-3. Избегай вопросов, на которые уже есть ответы
-4. Фокусируйся на симптомах, которые помогут различить похожие проблемы
-
-ТИПЫ ПОЛЕЗНЫХ ВОПРОСОВ:
-- Временные: "Когда началось?", "Как часто происходит?"
-- Условные: "При каких условиях проявляется?"
-- Сенсорные: "Какие звуки/запахи/ощущения?"
-- Исторические: "Что делали перед поломкой?", "Были ли изменения?"
-
-ЗАДАЧА: Составь 3-5 конкретных вопросов, которые максимально сузят круг возможных причин.
-
-ФОРМАТ ОТВЕТА (строго JSON):
+Ответь строго в формате JSON:
 {{"questions": ["вопрос 1", "вопрос 2", "вопрос 3"]}}"""
 
         fallback_questions = [
@@ -79,14 +65,12 @@ class DiagnosticAgent:
             return result.get("questions", fallback_questions) if result else fallback_questions
 
         except Exception as e:
-            print(f"[DiagnosticAgent Generate Error]: {e}")
+            logger.error(f"Failed to generate questions: {e}")
             return fallback_questions
 
     def analyze_answers(self, analysis_result, qa_pairs):
         """
         Analyze user answers to refine diagnosis.
-
-        Synthesizes visual analysis with user responses for accurate diagnosis.
 
         Args:
             analysis_result: Initial vision analysis
@@ -95,43 +79,31 @@ class DiagnosticAgent:
         Returns:
             dict with refined diagnosis, probable causes, and confidence level
         """
-        # Build comprehensive context
-        context = f"""ВИЗУАЛЬНЫЙ АНАЛИЗ:
-Объект: {analysis_result.get("object", "неизвестно")}
+        context = f"""Объект: {analysis_result.get("object", "неизвестно")}
 Проблема: {analysis_result.get("problem", "неизвестно")}
 Категория: {analysis_result.get("category", "неизвестно")}
 Видимые детали: {", ".join(analysis_result.get("visible_details", []))}
 
-ИНФОРМАЦИЯ ОТ ПОЛЬЗОВАТЕЛЯ:"""
+Ответы пользователя:"""
 
         for q, a in qa_pairs.items():
-            context += f"\n• {q}\n  → {a}"
+            context += f"\n- {q}\n -> {a}"
 
         prompt = f"""{context}
+На основе визуального анализа и ответов пользователя сформулируй точный диагноз.
+Оцени уверенность: 90-100 = очевидно, 70-89 = вероятно, 50-69 = возможно, <50 = неясно.
 
-Ты - эксперт-диагност. Проанализируй всю информацию и сделай ТОЧНЫЙ диагноз.
-
-МЕТОДОЛОГИЯ АНАЛИЗА:
-1. Сопоставь визуальные признаки с ответами пользователя
-2. Исключи маловероятные причины на основе противоречий
-3. Определи наиболее вероятные причины по совпадению симптомов
-4. Оцени уверенность: 90-100% = очевидно, 70-89% = вероятно, 50-69% = возможно, <50% = неясно
-
-ЗАДАЧА: Сформулируй уточненный диагноз с конкретными причинами.
-
-ФОРМАТ ОТВЕТА (строго JSON):
+Ответь строго в формате JSON:
 {{
-    "refined_diagnosis": "точный диагноз с указанием конкретной неисправности",
+    "refined_diagnosis": "конкретная неисправность (например: 'засор фильтра сливного насоса', а не 'проблема с водой')",
     "probable_causes": [
-        "наиболее вероятная причина (с объяснением)",
+        "наиболее вероятная причина с объяснением",
         "альтернативная причина (если есть)"
     ],
-    "confidence": 85,
-    "additional_info": "важная информация для ремонта или предупреждения"
+    "confidence": <число 0-100>,
+    "additional_info": "важное для ремонта или безопасности"
 }}
-
-ВАЖНО: Будь конкретным. Вместо "проблема с водой" напиши "засор фильтра сливного насоса"."""
-
+"""
         fallback_diagnosis = {
             "refined_diagnosis": analysis_result.get("problem", "Не определено"),
             "probable_causes": ["Требуется дополнительная диагностика"],
@@ -145,6 +117,6 @@ class DiagnosticAgent:
             return result if result else fallback_diagnosis
 
         except Exception as e:
-            print(f"[DiagnosticAgent Analyze Error]: {e}")
+            logger.error(f"Failed to analyze answers: {e}")
             fallback_diagnosis["error"] = str(e)
             return fallback_diagnosis
