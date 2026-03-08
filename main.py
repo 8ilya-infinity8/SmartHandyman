@@ -210,8 +210,8 @@ def show_analysis_step():
     if not st.session_state.analysis_result:
         with st.spinner("Анализирую изображение с помощью Vision AI..."):
             analyzer = VisionAnalyzer()
-            result = analyzer.analyze_image(st.session_state.uploaded_image)
-            st.session_state.analysis_result = result
+            st.session_state.analysis_result = analyzer.analyze_image(st.session_state.uploaded_image)
+
     result = st.session_state.analysis_result
 
     if "error" in result:
@@ -330,10 +330,9 @@ def show_safety_step():
     if not st.session_state.safety_info:
         with st.spinner("Проверяю безопасность ремонта..."):
             checker = SafetyChecker()
-            safety_info = checker.check_safety(
+            st.session_state.safety_info = checker.check_safety(
                 st.session_state.analysis_result, st.session_state.answers
             )
-            st.session_state.safety_info = safety_info
 
     safety_info = st.session_state.safety_info
     safety_message = SafetyChecker.format_safety_message(safety_info)
