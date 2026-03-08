@@ -13,20 +13,15 @@ class InstructionGenerator:
         self.client = LLMClient(TEXT_MODEL, use_vision=False)
 
     def search_repair_info(self, diagnosis, object_name):
-        """
-        Search for repair information (simulated RAG).
-        In production, this would query a vector database.
-        """
-        # Simulated knowledge base search
-        # In real implementation, this would use ChromaDB or similar
-        search_query = f"{object_name} {diagnosis} repair"
-
-        # For now, we'll use LLM to generate instructions
-        # In production, you'd search actual repair databases
-        return {
-            "sources": ["iFixit", "WikiHow", "Repair Manual"],
-            "query": search_query,
-        }
+        """Ищет релевантные чанки через FAISS. Если недоступен — пустой результат."""
+        query = f"{object_name} {diagnosis}"
+        try:
+            from retriever import load_retriever
+            hits = load_retriever().search(query, k=5, min_score=0.0)
+            return {"hits": hits, "query": query}
+        except Exception as e:
+            print(f"[RAG] недоступен: {e}")
+            return {"hits": [], "query": query}
 
     def generate_instructions(self, diagnosis, analysis_result, safety_info):
         """
@@ -43,15 +38,25 @@ class InstructionGenerator:
         object_name = analysis_result.get("object", "устройство")
         problem = diagnosis.get("refined_diagnosis", analysis_result.get("problem"))
 
-        # Search for relevant info
+        # Search for relevant info via RAG
         search_results = self.search_repair_info(problem, object_name)
+        hits = search_results.get("hits", [])
+
+        rag_context = ""
+        if hits:
+            pieces = []
+            for i, h in enumerate(hits[:4], 1):
+                snippet = h.get("text", "")[:600]
+                src = h.get("title") or h.get("source") or h.get("provider") or "—"
+                pieces.append(f"[{i}] {src}:\n{snippet}")
+            rag_context = "\n\nРелевантные материалы из базы знаний:\n" + "\n---\n".join(pieces) + "\n\nИспользуй эти материалы при составлении инструкции.\n"
 
         prompt = f"""Ты опытный мастер по ремонту. Составь подробную пошаговую инструкцию.
 
 Объект: {object_name}
 Проблема: {problem}
 Возможные причины: {", ".join(diagnosis.get("probable_causes", []))}
-
+{rag_context}
 Создай инструкцию по ремонту в формате JSON:
 {{
     "title": "Название ремонта",
@@ -77,7 +82,7 @@ class InstructionGenerator:
             result = self.client.parse_json_response(response_text)
 
             if result:
-                result["sources"] = search_results["sources"]
+                result["sources"] = hits  # реальные источники из FAISS
                 return result
             else:
                 # JSON parsing failed, but we have text - parse it manually
@@ -148,11 +153,12 @@ class InstructionGenerator:
             "steps": steps,
             "tools_needed": ["Базовый набор инструментов"],
             "materials_needed": [],
-            "sources": search_results["sources"],
+            "sources": search_results.get("hits", []),
             "raw_text": text,
         }
 
-    def format_instructions(self, instructions):
+    @staticmethod
+    def format_instructions(instructions):
         """Format instructions for display."""
         output = [f"# {instructions.get('title', 'Инструкция по ремонту')}"]
         output.append(f"\n**Сложность:** {instructions.get('difficulty', 'средне')}")
@@ -160,21 +166,18 @@ class InstructionGenerator:
             f"**Примерное время:** {instructions.get('estimated_time', '?')} минут"
         )
 
-        # Tools
         tools = instructions.get("tools_needed", [])
         if tools:
             output.append("\n## 🔧 Необходимые инструменты:")
             for tool in tools:
                 output.append(f"- {tool}")
 
-        # Materials
         materials = instructions.get("materials_needed", [])
         if materials:
             output.append("\n## 🛒 Необходимые материалы:")
             for material in materials:
                 output.append(f"- {material}")
 
-        # Steps
         output.append("\n## 📋 Пошаговая инструкция:")
         for step in instructions.get("steps", []):
             output.append(
@@ -184,16 +187,15 @@ class InstructionGenerator:
             if step.get("warning"):
                 output.append(f"\n⚠️ **Внимание:** {step['warning']}")
 
-        # Tips
         tips = instructions.get("tips", [])
         if tips:
             output.append("\n## 💡 Полезные советы:")
             for tip in tips:
                 output.append(f"- {tip}")
 
-        # Sources
         sources = instructions.get("sources", [])
         if sources:
-            output.append(f"\n\n*Источники: {', '.join(sources)}*")
+            names = [s.get("title") or s.get("source") or "—" if isinstance(s, dict) else str(s) for s in sources]
+            output.append(f"\n\n*Источники: {', '.join(names)}*")
 
         return "\n".join(output)

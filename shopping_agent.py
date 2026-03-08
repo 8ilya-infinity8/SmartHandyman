@@ -173,7 +173,8 @@ class ShoppingAgent:
             "currency": "RUB",
         }
 
-    def format_shopping_list(self, shopping_list: Dict[str, Any], cost_estimate: Dict[str, Any]) -> str:
+    @staticmethod
+    def format_shopping_list(shopping_list: Dict[str, Any], cost_estimate: Dict[str, Any]) -> str:
         """Formats the generated list and cost estimate cleanly for markdown rendering."""
         if not shopping_list.get("items"):
             return "*Список покупок пуст. Похоже, у вас уже всё есть!*"
