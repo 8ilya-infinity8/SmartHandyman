@@ -122,10 +122,12 @@ class LLMClient:
 
         # Use instance max_tokens or default to 4096
         max_tokens = self.max_tokens if self.max_tokens is not None else 4096
+        temperature = self.temperature if self.temperature is not None else 0.7
 
         response = self.client.messages.create(
             model=self.model_name,
             max_tokens=max_tokens,
+            temperature=temperature,
             system=SYSTEM_PROMPT,
             messages=messages,
         )
@@ -193,12 +195,20 @@ class LLMClient:
         if not response_text:
             return None
 
-        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+        # Try to extract from fenced code block first
+        match = re.search(r'```(?:json)?\s*(.*?)\s*```', response_text, re.DOTALL)
         if match:
-            json_str = match.group(1)
+            text = match.group(1)
         else:
-            match = re.search(r'\{.*?\}', response_text, re.DOTALL)
-            json_str = match.group(0) if match else response_text
+            text = response_text
+
+        # Find outermost JSON object: first '{' to last '}'
+        start = text.find('{')
+        end = text.rfind('}')
+        if start == -1 or end == -1 or end <= start:
+            return None
+
+        json_str = text[start:end + 1]
 
         try:
             return json.loads(json_str)

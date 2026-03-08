@@ -152,7 +152,8 @@ class InstructionGenerator:
             "raw_text": text,
         }
 
-    def format_instructions(self, instructions):
+    @staticmethod
+    def format_instructions(instructions):
         """Format instructions for display."""
         output = [f"# {instructions.get('title', 'Инструкция по ремонту')}"]
         output.append(f"\n**Сложность:** {instructions.get('difficulty', 'средне')}")
@@ -160,21 +161,18 @@ class InstructionGenerator:
             f"**Примерное время:** {instructions.get('estimated_time', '?')} минут"
         )
 
-        # Tools
         tools = instructions.get("tools_needed", [])
         if tools:
             output.append("\n## 🔧 Необходимые инструменты:")
             for tool in tools:
                 output.append(f"- {tool}")
 
-        # Materials
         materials = instructions.get("materials_needed", [])
         if materials:
             output.append("\n## 🛒 Необходимые материалы:")
             for material in materials:
                 output.append(f"- {material}")
 
-        # Steps
         output.append("\n## 📋 Пошаговая инструкция:")
         for step in instructions.get("steps", []):
             output.append(
@@ -184,14 +182,12 @@ class InstructionGenerator:
             if step.get("warning"):
                 output.append(f"\n⚠️ **Внимание:** {step['warning']}")
 
-        # Tips
         tips = instructions.get("tips", [])
         if tips:
             output.append("\n## 💡 Полезные советы:")
             for tip in tips:
                 output.append(f"- {tip}")
 
-        # Sources
         sources = instructions.get("sources", [])
         if sources:
             output.append(f"\n\n*Источники: {', '.join(sources)}*")

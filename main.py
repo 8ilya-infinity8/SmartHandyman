@@ -207,10 +207,12 @@ def show_analysis_step():
     """Step 1: Analyze image with Vision LLM."""
     st.header("🔍 Шаг 2: Анализ изображения")
 
-    with st.spinner("Анализирую изображение с помощью Vision AI..."):
-        analyzer = VisionAnalyzer()
-        result = analyzer.analyze_image(st.session_state.uploaded_image)
-        st.session_state.analysis_result = result
+    if not st.session_state.analysis_result:
+        with st.spinner("Анализирую изображение с помощью Vision AI..."):
+            analyzer = VisionAnalyzer()
+            result = analyzer.analyze_image(st.session_state.uploaded_image)
+            st.session_state.analysis_result = result
+    result = st.session_state.analysis_result
 
     if "error" in result:
         st.error(f"⚠️ Ошибка анализа: {result.get('error')}")
@@ -325,14 +327,16 @@ def show_safety_step():
     """Step 3: Safety check and warnings."""
     st.header("🚨 Шаг 4: Проверка безопасности")
 
-    with st.spinner("Проверяю безопасность ремонта..."):
-        checker = SafetyChecker()
-        safety_info = checker.check_safety(
-            st.session_state.analysis_result, st.session_state.answers
-        )
-        st.session_state.safety_info = safety_info
+    if not st.session_state.safety_info:
+        with st.spinner("Проверяю безопасность ремонта..."):
+            checker = SafetyChecker()
+            safety_info = checker.check_safety(
+                st.session_state.analysis_result, st.session_state.answers
+            )
+            st.session_state.safety_info = safety_info
 
-    safety_message = checker.format_safety_message(safety_info)
+    safety_info = st.session_state.safety_info
+    safety_message = SafetyChecker.format_safety_message(safety_info)
 
     if safety_info.get("is_dangerous"):
         st.markdown(
@@ -397,7 +401,7 @@ def show_instructions_step():
 
     # Display instructions
     instructions = st.session_state.instructions
-    formatted = InstructionGenerator().format_instructions(instructions)
+    formatted = InstructionGenerator.format_instructions(instructions)
     st.markdown(formatted)
 
     if st.button(
@@ -424,7 +428,7 @@ def show_shopping_step():
 
     # Display shopping list
     shopping_data = st.session_state.shopping_list
-    formatted = ShoppingAgent().format_shopping_list(
+    formatted = ShoppingAgent.format_shopping_list(
         shopping_data["list"], shopping_data["cost"]
     )
     st.markdown(formatted)
