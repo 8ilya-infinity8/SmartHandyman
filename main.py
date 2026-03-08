@@ -7,7 +7,6 @@ from safety_checker import SafetyChecker
 from instruction_generator import InstructionGenerator
 from shopping_agent import ShoppingAgent
 from config import LLM_PROVIDER, ACTIVE_API_KEY
-import io
 
 # Page configuration
 st.set_page_config(
@@ -84,30 +83,19 @@ def init_session_state():
 def check_api_key():
     """Check if API key is configured."""
     if not ACTIVE_API_KEY:
-        if LLM_PROVIDER == "claude":
-            st.error(
-                "⚠️ API ключ Claude не настроен! Создайте файл .env и добавьте CLAUDE_API_KEY и CLAUDE_BASE_URL"
-            )
-            st.info("Получите API ключ у вашего провайдера Claude API")
-        elif LLM_PROVIDER == "openai":
-            st.error(
-                "⚠️ API ключ OpenAI не настроен! Создайте файл .env и добавьте OPENAI_API_KEY"
-            )
+        if LLM_PROVIDER == "openai":
+            st.error("⚠️ API ключ OpenAI не настроен! Создайте файл .env и добавьте OPENAI_API_KEY")
             st.info("Получите API ключ на https://platform.openai.com/api-keys")
         else:
-            st.error(
-                "⚠️ API ключ Google не настроен! Создайте файл .env и добавьте GOOGLE_API_KEY"
-            )
-            st.info("Получите API ключ на https://aistudio.google.com/app/apikey")
+            st.error("⚠️ API ключ Claude не настроен! Создайте файл .env и добавьте CLAUDE_API_KEY и CLAUDE_BASE_URL")
+            st.info("Получите API ключ у вашего провайдера Claude API")
         st.stop()
 
     # Display current provider
-    if LLM_PROVIDER == "claude":
-        provider_name = "Claude (Anthropic)"
-    elif LLM_PROVIDER == "openai":
+    if LLM_PROVIDER == "openai":
         provider_name = "OpenAI GPT"
     else:
-        provider_name = "Google Gemini"
+        provider_name = "Claude (Anthropic)"
     st.sidebar.info(f"🤖 Используется: {provider_name}")
 
 
@@ -129,7 +117,6 @@ def main():
     init_session_state()
     check_api_key()
 
-    # Header
     st.markdown(
         '<div class="main-header">🔧 Помощник по домашнему ремонту</div>',
         unsafe_allow_html=True,
@@ -138,7 +125,6 @@ def main():
         "Загрузите фото поломки, и я помогу вам определить проблему и составить план ремонта."
     )
 
-    # Sidebar with progress
     with st.sidebar:
         st.header("📊 Прогресс диагностики")
         steps = [
@@ -163,7 +149,6 @@ def main():
             reset_workflow()
             st.rerun()
 
-    # Main workflow
     if st.session_state.step == 0:
         show_upload_step()
     elif st.session_state.step == 1:
@@ -189,7 +174,6 @@ def show_upload_step():
     )
 
     if uploaded_file:
-        # Display image
         col1, col2 = st.columns([2, 1])
 
         with col1:
@@ -210,7 +194,6 @@ def show_upload_step():
                 """
             )
 
-        # Store image
         st.session_state.uploaded_image = uploaded_file.getvalue()
 
         if st.button(
@@ -231,10 +214,11 @@ def show_analysis_step():
 
     result = st.session_state.analysis_result
 
-    # Display analysis results
     if "error" in result:
-        st.error(f"Ошибка анализа: {result.get('error')}")
-        if st.button("Попробовать снова"):
+        st.error(f"⚠️ Ошибка анализа: {result.get('error')}")
+        st.info("Попробуйте загрузить фото еще раз или проверьте подключение.")
+        if st.button("🔄 Попробовать снова", type="primary"):
+            st.session_state.uploaded_image = None
             st.session_state.step = 0
             st.rerun()
         return
@@ -248,7 +232,6 @@ def show_analysis_step():
         st.write(f"**Проблема:** {result.get('problem', 'Не определено')}")
         st.write(f"**Категория:** {result.get('category', 'Не определено')}")
 
-        # Danger level indicator
         danger_level = result.get("danger_level", "medium")
         if danger_level == "high":
             st.error("⚠️ Уровень опасности: ВЫСОКИЙ")
@@ -282,7 +265,7 @@ def show_questions_step():
 
     agent = DiagnosticAgent()
 
-    # Generate questions if not already done
+    # Generate questions if not done
     if not st.session_state.questions:
         with st.spinner("Генерирую вопросы..."):
             questions = agent.generate_questions(
@@ -329,16 +312,13 @@ def show_questions_step():
                 st.rerun()
 
             elif skip:
-                # Use initial analysis as diagnosis
-                st.session_state.diagnosis = {
-                    "refined_diagnosis": st.session_state.analysis_result.get(
-                        "problem"
-                    ),
-                    "probable_causes": ["Требуется визуальный осмотр"],
-                    "confidence": st.session_state.analysis_result.get(
-                        "confidence", 50
-                    ),
-                }
+                # Analyze only by photo
+                with st.spinner("Формирую базовый диагноз..."):
+                    diagnosis = agent.analyze_answers(
+                        st.session_state.analysis_result, {}
+                    )
+                    st.session_state.diagnosis = diagnosis
+
                 st.session_state.step = 3
                 st.rerun()
 
@@ -354,11 +334,8 @@ def show_safety_step():
                 st.session_state.analysis_result, st.session_state.answers
             )
 
-    checker = SafetyChecker()
     safety_info = st.session_state.safety_info
-
-    # Display safety information
-    safety_message = checker.format_safety_message(safety_info)
+    safety_message = SafetyChecker.format_safety_message(safety_info)
 
     if safety_info.get("is_dangerous"):
         st.markdown(
@@ -423,7 +400,7 @@ def show_instructions_step():
 
     # Display instructions
     instructions = st.session_state.instructions
-    formatted = InstructionGenerator().format_instructions(instructions)
+    formatted = InstructionGenerator.format_instructions(instructions)
     st.markdown(formatted)
 
     if st.button(
@@ -450,22 +427,17 @@ def show_shopping_step():
 
     # Display shopping list
     shopping_data = st.session_state.shopping_list
-    formatted = ShoppingAgent().format_shopping_list(
+    formatted = ShoppingAgent.format_shopping_list(
         shopping_data["list"], shopping_data["cost"]
     )
     st.markdown(formatted)
 
-    # Success message
     st.success("✅ Диагностика завершена! Удачного ремонта!")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🔄 Новая диагностика", use_container_width=True):
-            reset_workflow()
-            st.rerun()
-    with col2:
-        if st.button("📥 Экспортировать отчет", use_container_width=True):
-            st.info("Функция экспорта будет добавлена в следующей версии")
+    st.divider()
+    if st.button("🔄 Начать новую диагностику", type="primary", use_container_width=True):
+        reset_workflow()
+        st.rerun()
 
 
 if __name__ == "__main__":

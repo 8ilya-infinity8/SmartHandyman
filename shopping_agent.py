@@ -256,7 +256,8 @@ class ShoppingAgent:
                 "note": "Не удалось найти актуальные цены",
             }
 
-    def format_shopping_list(self, shopping_list, cost_estimate):
+    @staticmethod
+    def format_shopping_list(shopping_list, cost_estimate):
         """Format shopping list for display."""
         output = ["# 🛒 Список покупок"]
 

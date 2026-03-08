@@ -94,7 +94,8 @@ class SafetyChecker:
                 "error": str(e),
             }
 
-    def format_safety_message(self, safety_result):
+    @staticmethod
+    def format_safety_message(safety_result):
         """Format safety warnings for display."""
         if not safety_result.get("is_dangerous"):
             return (
