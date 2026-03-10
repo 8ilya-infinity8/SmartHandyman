@@ -10,7 +10,7 @@ password_context = CryptContext(
 
 class Settings(BaseSettings):
     DATABASE_URL: str = (
-        "postgresql+psycopg2://postgres:password@localhost:5432/smarthandyman"
+        "postgresql+asyncpg://postgres:password@localhost:5432/smarthandyman"
     )
 
     SECRET_KEY: str = "super-secret-change-me-very-long-random-string"

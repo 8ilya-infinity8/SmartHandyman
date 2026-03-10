@@ -7,12 +7,15 @@ class MessageCreate(BaseModel):
     chat_id: int
     content: str
     role: str = "user"
+    # URL returned by storage upload endpoint; may be None when sending text-only messages
+    attachment_url: str | None = None
 
 
 class MessageRead(BaseModel):
     id: int
     role: str
     content: str
+    attachment_url: str | None = None
     created_at: datetime
     chat_id: int
 

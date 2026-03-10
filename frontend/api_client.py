@@ -1,7 +1,11 @@
+import os
+
 import httpx
 import streamlit as st
 
-BASE_URL = "http://localhost:8000/api/v1"
+# Базовый URL backend-а читаем из переменной окружения, чтобы в Docker
+# фронт умел ходить на сервис "backend", а локально — на localhost.
+BASE_URL = os.getenv("BACKEND_BASE_URL", "http://localhost:8000/api/v1")
 
 
 def _get_headers():
@@ -43,6 +47,14 @@ def create_chat(title: str) -> dict:
         return r.json()
 
 
+def delete_chat(chat_id: int) -> None:
+    """Delete a chat owned by the current user."""
+    url = f"{BASE_URL}/chats/{chat_id}"
+    with httpx.Client() as client:
+        r = client.delete(url, headers=_get_headers())
+        r.raise_for_status()
+
+
 def get_messages(chat_id: int) -> list:
     url = f"{BASE_URL}/messages/chat/{chat_id}"
     with httpx.Client() as client:
@@ -51,11 +63,41 @@ def get_messages(chat_id: int) -> list:
         return r.json()
 
 
-def send_message(chat_id: int, content: str, role: str = "user") -> dict:
+def send_message(
+    chat_id: int, content: str, role: str = "user", attachment_url: str | None = None
+) -> dict:
     url = f"{BASE_URL}/messages"
     payload = {"chat_id": chat_id, "content": content, "role": role}
+    if attachment_url:
+        payload["attachment_url"] = attachment_url
     with httpx.Client() as client:
         r = client.post(url, json=payload, headers=_get_headers())
+        r.raise_for_status()
+        return r.json()
+
+
+def upload_file(bucket: str, file_bytes: bytes, filename: str) -> dict:
+    """Upload raw bytes to a bucket. Returns object metadata with a URL."""
+    url = f"{BASE_URL}/storage/upload"
+    files = {"file": (filename, file_bytes)}
+    data = {"bucket": bucket}
+    # For multipart uploads we must NOT force "Content-Type: application/json",
+    # otherwise FastAPI cannot parse the form-data and returns 422.
+    # Build auth headers manually without content-type so httpx sets it.
+    headers = {}
+    token = st.session_state.get("token")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    with httpx.Client() as client:
+        r = client.post(url, files=files, data=data, headers=headers)
+        r.raise_for_status()
+        return r.json()
+
+
+def list_bucket(bucket: str) -> list:
+    url = f"{BASE_URL}/storage/list/{bucket}"
+    with httpx.Client() as client:
+        r = client.get(url, headers=_get_headers())
         r.raise_for_status()
         return r.json()
 
