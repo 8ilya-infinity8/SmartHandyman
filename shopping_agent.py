@@ -5,7 +5,7 @@ Uses DuckDuckGo search integration for live price fetching.
 
 import time
 from typing import Dict, List, Any
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 from llm_client import LLMClient
 from config import TEXT_MODEL
 
@@ -75,10 +75,12 @@ class ShoppingAgent:
 
     def _fetch_live_price(self, item_name: str) -> Dict[str, Any]:
         """Searches the web for the item to find actual current prices (RAG implementation)."""
-        query = f"купить {item_name} цена руб"
+        clean_name = item_name.strip()
+        
+        query = f"купить {clean_name} строительный магазин цена руб"
         
         try:
-            results = self.ddgs.text(query, region='ru-ru', max_results=4)
+            results = self.ddgs.text(query, region='ru-ru', max_results=4, backend='html')
             
             if not results:
                 print(f"   ❌ Поисковик не выдал результатов для '{item_name}'")
