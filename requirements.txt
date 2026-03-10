@@ -85,3 +85,4 @@ uvicorn==0.41.0
 watchdog==6.0.0
 watchfiles==1.1.1
 wheel==0.46.3
+ddgs
