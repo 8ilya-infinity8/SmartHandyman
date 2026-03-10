@@ -6,23 +6,14 @@ from config import TEXT_MODEL
 
 
 class SafetyChecker:
-    """Checks if repair involves dangerous elements and provides safety warnings."""
+    """Evaluates repair safety and generates appropriate warnings."""
 
     def __init__(self):
+        """Initializes the safety analyzer using the text LLM."""
         self.client = LLMClient(TEXT_MODEL, use_vision=False)
 
     def check_safety(self, analysis_result, user_answers=None):
-        """
-        Check if the repair is dangerous and generate appropriate warnings.
-
-        Args:
-            analysis_result: Result from vision analysis
-            user_answers: Optional user answers to diagnostic questions
-
-        Returns:
-            dict with safety information
-        """
-        # Quick keyword check
+        """Analyzes repair data and returns a JSON assessing the threat level."""
         problem_text = (
             f"{analysis_result.get('object', '')} "
             f"{analysis_result.get('problem', '')} "
@@ -32,30 +23,38 @@ class SafetyChecker:
         if user_answers:
             problem_text += " " + " ".join(user_answers.values()).lower()
 
-        has_danger_keyword = any(
-            keyword.lower() in problem_text for keyword in DANGER_KEYWORDS
-        )
+        matched_keywords = [
+            keyword for keyword in DANGER_KEYWORDS if keyword.lower() in problem_text
+        ]
+        has_danger_keyword = bool(matched_keywords)
 
         danger_level = analysis_result.get("danger_level", "medium")
+        context_warning = ""
+        if matched_keywords:
+            context_warning = (
+                f"\nВНИМАНИЕ: Сработали слова-триггеры опасности: {', '.join(matched_keywords)}. "
+                "Тщательно проанализируй контекст! Это действительно опасная ситуация (например, напряжение 220В, утечка газа, прорыв трубы), "
+                "безопасный бытовой предмет (например, кабель от зарядки) или вообще ложное срабатывание (совпадение части слова, например 'газ' в слове 'магазин')? "
+                "Если угроза реальна, ставь is_dangerous: true."
+            )
 
-        # Use LLM for detailed safety analysis
         prompt = f"""Проанализируй безопасность ремонта:
 
 Объект: {analysis_result.get("object", "неизвестно")}
 Проблема: {analysis_result.get("problem", "неизвестно")}
 Категория: {analysis_result.get("category", "неизвестно")}
-Уровень опасности: {danger_level}
+Уровень опасности по фото: {danger_level}{context_warning}
 
 Определи:
-1. Связан ли ремонт с электричеством, газом или другими опасными системами
-2. Какие меры безопасности необходимо соблюдать
+1. Связан ли ремонт с реальной опасностью (ток, газ, вода, высота, токсичная химия/пыль)
+2. Какие меры безопасности соблюдать (обязательно укажи СИЗ: очки, перчатки, респиратор)
 3. Нужно ли вызывать специалиста
 
 Ответь в формате JSON:
 {{
     "is_dangerous": true/false,
-    "danger_type": "electricity/gas/water/height/other/none",
-    "safety_warnings": ["предупреждение 1", "предупреждение 2", ...],
+    "danger_type": "electricity/gas/water/height/chemical/other/none",
+    "safety_warnings": ["предупреждение 1", "предупреждение 2"],
     "requires_professional": true/false,
     "professional_reason": "причина почему нужен специалист"
 }}"""
@@ -65,12 +64,17 @@ class SafetyChecker:
             result = self.client.parse_json_response(response_text)
 
             if result:
-                # Override if keywords detected
-                if has_danger_keyword and not result.get("is_dangerous"):
+                if danger_level == "high" and not result.get("is_dangerous"):
                     result["is_dangerous"] = True
+                    result["requires_professional"] = True
+                    result["professional_reason"] = "Визуальный анализ выявил критическую угрозу."
+                    
+                    if "safety_warnings" not in result:
+                        result["safety_warnings"] = []
+                    result["safety_warnings"].insert(0, "🚨 Система визуального контроля заблокировала статус 'Безопасно'. Выявлен высокий риск!")
+                
                 return result
             else:
-                # Fallback
                 return {
                     "is_dangerous": has_danger_keyword or danger_level == "high",
                     "danger_type": "unknown",
@@ -82,7 +86,6 @@ class SafetyChecker:
                 }
 
         except Exception as e:
-            # Fallback safety response
             return {
                 "is_dangerous": has_danger_keyword or danger_level == "high",
                 "danger_type": "unknown",
@@ -94,7 +97,8 @@ class SafetyChecker:
                 "error": str(e),
             }
 
-    def format_safety_message(self, safety_result):
+    @staticmethod
+    def format_safety_message(safety_result):
         """Format safety warnings for display."""
         if not safety_result.get("is_dangerous"):
             return (
@@ -117,6 +121,10 @@ class SafetyChecker:
         elif danger_type == "height":
             messages.append(
                 "\n🪜 ВЫСОТА: Используйте устойчивую стремянку, не работайте в одиночку!"
+            )
+        elif danger_type == "chemical":
+            messages.append(
+                "\n🧪 ХИМИЯ/ПЫЛЬ: Обеспечьте проветривание! Обязательно используйте СИЗ (респиратор, очки, перчатки)!"
             )
 
         for warning in safety_result.get("safety_warnings", []):

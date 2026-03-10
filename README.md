@@ -77,7 +77,8 @@ project_llm_cl/
 ├── vision_analyzer.py         # 👁️ Vision: анализ изображений
 ├── diagnostic_agent.py        # 🔍 Диагностика: интерактивные вопросы
 ├── safety_checker.py          # ⚠️ Безопасность: проверка опасных ремонтов
-├── instruction_generator.py   # 📖 RAG: генерация инструкций
+├── instruction_generator.py   # 📖 Генерация инструкций (с использованием RAG)
+├── rag/                       # 📚 RAG: база знаний, индекс и ретривер
 ├── shopping_agent.py          # 🛒 Сметчик: список покупок и цены
 ├── requirements.txt           # Зависимости Python
 ├── .env                       # API ключи (не в git!)
@@ -94,7 +95,7 @@ project_llm_cl/
    - Добавление новых экранов
    - Визуализация данных
 
-2. **RAG специалист** → `instruction_generator.py`
+2. **RAG специалист** → `rag/`
    - Интеграция с реальными базами знаний (iFixit, WikiHow)
    - Векторные базы данных (ChromaDB, Pinecone)
    - Улучшение качества инструкций
@@ -187,7 +188,7 @@ OPENAI_API_KEY=sk-ваш_ключ
 
 ### Instruction Generator (`instruction_generator.py`)
 - Генерация пошаговых инструкций
-- RAG для поиска в базе знаний
+- RAG для поиска в базе знаний (модуль `rag/`)
 - Список инструментов и материалов
 
 ### Shopping Agent (`shopping_agent.py`)
@@ -251,7 +252,7 @@ OPENAI_API_KEY=sk-ваш_ключ
 Проект организован модульно - каждый участник может работать над своей частью:
 
 - **Frontend** - `main.py` (Streamlit UI)
-- **RAG** - `instruction_generator.py` (база знаний, векторный поиск)
+- **RAG** - `rag/` (база знаний, векторный поиск)
 - **Сметчик** - `shopping_agent.py` (интеграция с магазинами)
 - **Vision** - `vision_analyzer.py` (анализ изображений)
 - **Диагностика** - `diagnostic_agent.py` (логика вопросов)

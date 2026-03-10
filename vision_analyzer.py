@@ -1,51 +1,69 @@
-"""Vision LLM analyzer for identifying problems from images."""
-
+import logging
 from llm_client import LLMClient
-from config import VISION_MODEL
-import json
+from config import VISION_MODEL, VISION_TEMPERATURE, VISION_MAX_TOKENS
+
+logger = logging.getLogger(__name__)
 
 
 class VisionAnalyzer:
-    """Analyzes images to identify objects and problems."""
+    """
+    Analyzes images to identify objects and problems using Vision LLM.
 
+    Uses low temperature for precise, factual identification.
+    """
     def __init__(self):
-        self.client = LLMClient(VISION_MODEL, use_vision=True)
+        self.client = LLMClient(
+            VISION_MODEL,
+            use_vision=True,
+            temperature=VISION_TEMPERATURE,
+            max_tokens=VISION_MAX_TOKENS,
+        )
 
     def analyze_image(self, image_bytes):
         """
         Analyze uploaded image to identify the problem.
 
+        Uses structured prompt for consistent, detailed analysis.
+
         Args:
             image_bytes: Image file in bytes
 
         Returns:
-            dict with analysis results
+            dict with analysis results including object, problem, danger level
         """
-        try:
-            prompt = """Проанализируй это изображение поломки или неисправности.
-            
-Определи:
-1. Что за объект/устройство (модель, если видна)
-2. В чем проблема (код ошибки, видимые повреждения, протечки и т.д.)
-3. Насколько это опасно (связано ли с электричеством, газом, водой)
-4. Категория проблемы (сантехника, электрика, бытовая техника, строительство)
+        if not image_bytes:
+            logger.error("analyze_image called with empty image_bytes")
+            return {
+                "error": "Изображение не предоставлено",
+                "object": "Ошибка анализа",
+                "problem": "Не получено изображение для анализа. Попробуйте загрузить фото ещё раз.",
+            }
 
-Ответь в формате JSON:
+        try:
+            prompt = """Проанализируй изображение поломки или неисправности. Опирайся только на факты, видимые на фото.
+
+Определи уровень опасности:
+- high: электричество (провода, розетки, щитки) или газ (трубы, котлы, утечки)
+- medium: вода под давлением
+- low: механические повреждения без опасности
+
+Ответь строго в формате JSON:
 {
-    "object": "название объекта/устройства",
-    "brand": "бренд/модель если видна",
-    "problem": "описание проблемы",
+    "object": "точное название объекта/устройства",
+    "brand": "бренд и модель (или 'не определен')",
+    "problem": "детальное описание видимой проблемы",
     "danger_level": "low/medium/high",
-    "category": "категория",
-    "visible_details": ["список видимых деталей"],
-    "confidence": "уровень уверенности 0-100"
-}"""
+    "category": "сантехника/электрика/бытовая_техника/строительство/отопление",
+    "visible_details": ["конкретная деталь 1", "конкретная деталь 2"],
+    "confidence": <число 0-100, насколько уверен в диагнозе>
+}
+
+ВАЖНО: Будь максимально конкретным. Если видишь код ошибки - укажи его точно. Если видишь модель - укажи её."""
 
             response_text = self.client.generate_content(prompt, image=image_bytes)
             result = self.client.parse_json_response(response_text)
 
             if result is None:
-                # Fallback: create structured response from text
                 result = {
                     "object": "Не удалось определить",
                     "problem": response_text,
@@ -57,39 +75,9 @@ class VisionAnalyzer:
             return result
 
         except Exception as e:
+            logger.error(f"Image analysis failed: {e}")
             return {
                 "error": str(e),
                 "object": "Ошибка анализа",
                 "problem": f"Не удалось проанализировать изображение: {str(e)}",
             }
-
-    def get_initial_questions(self, analysis_result):
-        """Generate initial diagnostic questions based on image analysis."""
-        prompt = f"""На основе анализа изображения:
-Объект: {analysis_result.get("object", "неизвестно")}
-Проблема: {analysis_result.get("problem", "неизвестно")}
-
-Составь 3-5 уточняющих вопросов для более точной диагностики.
-Вопросы должны помочь определить причину поломки.
-
-Верни список вопросов в формате JSON:
-{{"questions": ["вопрос 1", "вопрос 2", ...]}}"""
-
-        try:
-            response_text = self.client.generate_content(prompt)
-            result = self.client.parse_json_response(response_text)
-
-            if result:
-                return result.get("questions", [])
-            else:
-                return [
-                    "Когда началась проблема?",
-                    "Были ли необычные звуки или запахи?",
-                    "Проводилось ли обслуживание недавно?",
-                ]
-        except:
-            return [
-                "Когда началась проблема?",
-                "Были ли необычные звуки или запахи?",
-                "Проводилось ли обслуживание недавно?",
-            ]
