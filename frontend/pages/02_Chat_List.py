@@ -342,7 +342,9 @@ else:
 
         if submitted and (prompt.strip() or attachment_url):
             try:
-                created = create_chat(prompt.strip()[:64] if prompt.strip() else "New chat")
+                created = create_chat(
+                    prompt.strip()[:64] if prompt.strip() else "New chat"
+                )
                 st.session_state["chat_id"] = created.get("id")
                 # отправляем первый месседж сразу после создания чата
                 try:

@@ -67,12 +67,17 @@ class SafetyChecker:
                 if danger_level == "high" and not result.get("is_dangerous"):
                     result["is_dangerous"] = True
                     result["requires_professional"] = True
-                    result["professional_reason"] = "Визуальный анализ выявил критическую угрозу."
-                    
+                    result["professional_reason"] = (
+                        "Визуальный анализ выявил критическую угрозу."
+                    )
+
                     if "safety_warnings" not in result:
                         result["safety_warnings"] = []
-                    result["safety_warnings"].insert(0, "🚨 Система визуального контроля заблокировала статус 'Безопасно'. Выявлен высокий риск!")
-                
+                    result["safety_warnings"].insert(
+                        0,
+                        "🚨 Система визуального контроля заблокировала статус 'Безопасно'. Выявлен высокий риск!",
+                    )
+
                 return result
             else:
                 return {

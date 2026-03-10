@@ -33,11 +33,12 @@ def load_retriever() -> "Retriever":
 
 # ─── Класс ───────────────────────────────────────────────────────────────────
 
+
 class Retriever:
     def __init__(self):
-        index_path  = INDEX_DIR / "index.faiss"
+        index_path = INDEX_DIR / "index.faiss"
         chunks_path = INDEX_DIR / "chunks.pkl"
-        meta_path   = INDEX_DIR / "metadata.pkl"
+        meta_path = INDEX_DIR / "metadata.pkl"
 
         if not index_path.exists():
             print(f"[Retriever] index.faiss не найден в {INDEX_DIR} — RAG отключён")
@@ -46,6 +47,7 @@ class Retriever:
 
         # Грузим FAISS (только faiss-cpu, torch не нужен)
         import faiss
+
         self._index = faiss.read_index(str(index_path))
 
         with open(chunks_path, "rb") as f:
@@ -56,11 +58,14 @@ class Retriever:
         # Лёгкая многоязычная модель (~120 МБ против ~1.3 ГБ у e5-large)
         # Имя берём из config.py: paraphrase-multilingual-MiniLM-L12-v2
         from sentence_transformers import SentenceTransformer
+
         model_name = EMBEDDING_MODEL.replace("sentence-transformers/", "")
         self._model = SentenceTransformer(model_name)
 
         self._ready = True
-        print(f"[Retriever] Загружено {self._index.ntotal} векторов, модель: {model_name}")
+        print(
+            f"[Retriever] Загружено {self._index.ntotal} векторов, модель: {model_name}"
+        )
 
     # ─────────────────────────────────────────────────────────────────────────
 
@@ -89,12 +94,14 @@ class Retriever:
             if text.startswith("passage: "):
                 text = text[9:]
             meta = self._meta[idx] if idx < len(self._meta) else {}
-            results.append({
-                "score":    round(float(score), 4),
-                "text":     text,
-                "source":   meta.get("source"),
-                "title":    meta.get("title"),
-                "provider": meta.get("provider"),
-            })
+            results.append(
+                {
+                    "score": round(float(score), 4),
+                    "text": text,
+                    "source": meta.get("source"),
+                    "title": meta.get("title"),
+                    "provider": meta.get("provider"),
+                }
+            )
 
         return results

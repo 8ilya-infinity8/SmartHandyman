@@ -37,7 +37,6 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )  # поднимаемся в backend/
 from app.database.base import Base  # noqa: E402
-from app.database.models import chat, message, user  # noqa: E402
 
 target_metadata = Base.metadata
 

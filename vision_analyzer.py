@@ -11,6 +11,7 @@ class VisionAnalyzer:
 
     Uses low temperature for precise, factual identification.
     """
+
     def __init__(self):
         self.client = LLMClient(
             VISION_MODEL,

@@ -11,6 +11,7 @@ class DiagnosticAgent:
 
     Uses medium-low temperature for logical, focused questioning.
     """
+
     def __init__(self):
         self.client = LLMClient(
             TEXT_MODEL,
@@ -62,7 +63,11 @@ class DiagnosticAgent:
             response_text = self.client.generate_content(prompt)
             result = self.client.parse_json_response(response_text)
 
-            return result.get("questions", fallback_questions) if result else fallback_questions
+            return (
+                result.get("questions", fallback_questions)
+                if result
+                else fallback_questions
+            )
 
         except Exception as e:
             logger.error(f"Failed to generate questions: {e}")

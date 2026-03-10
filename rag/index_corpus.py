@@ -17,13 +17,15 @@ from sentence_transformers import SentenceTransformer
 from config import CHROMA_DB_PATH
 
 RAG_DIR = Path(CHROMA_DB_PATH) if CHROMA_DB_PATH else Path("rag/rag_store")
-MODEL   = "paraphrase-multilingual-MiniLM-L12-v2"
+MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
 def main():
     print("Загружаю chunks.pkl и metadata.pkl...")
-    with open(RAG_DIR / "chunks.pkl",   "rb") as f: chunks = pickle.load(f)
-    with open(RAG_DIR / "metadata.pkl", "rb") as f: meta   = pickle.load(f)
+    with open(RAG_DIR / "chunks.pkl", "rb") as f:
+        chunks = pickle.load(f)
+    with open(RAG_DIR / "metadata.pkl", "rb") as f:
+        meta = pickle.load(f)
     print(f"  {len(chunks)} чанков")
 
     # Убираем префикс "passage: " — MiniLM его не нужен
@@ -48,8 +50,10 @@ def main():
     # Сохраняем — перезаписываем старые файлы
     faiss.write_index(index, str(RAG_DIR / "index.faiss"))
     # Сохраняем чанки уже без префикса
-    with open(RAG_DIR / "chunks.pkl",   "wb") as f: pickle.dump(clean, f)
-    with open(RAG_DIR / "metadata.pkl", "wb") as f: pickle.dump(meta,  f)
+    with open(RAG_DIR / "chunks.pkl", "wb") as f:
+        pickle.dump(clean, f)
+    with open(RAG_DIR / "metadata.pkl", "wb") as f:
+        pickle.dump(meta, f)
 
     print(f"\nГотово! {index.ntotal} векторов в {RAG_DIR}/")
 

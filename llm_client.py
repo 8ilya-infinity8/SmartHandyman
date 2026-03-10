@@ -23,6 +23,7 @@ class LLMClient:
     Unified client for LLM operations supporting multiple providers.
     Handles both vision and text tasks.
     """
+
     def __init__(self, model_name, use_vision=False, temperature=None, max_tokens=None):
         """
         Initialize LLM client.
@@ -83,12 +84,15 @@ class LLMClient:
                 last_error = e
                 error_str = str(e).lower()
 
-                if any(word in error_str for word in ["auth", "api_key", "invalid_api", "permission"]):
+                if any(
+                    word in error_str
+                    for word in ["auth", "api_key", "invalid_api", "permission"]
+                ):
                     logger.error(f"Auth/validation error, not retrying: {e}")
                     raise
 
                 if attempt < max_retries - 1:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     logger.warning(
                         f"API call failed (attempt {attempt + 1}/{max_retries}): {e}. "
                         f"Retrying in {wait}s..."
@@ -150,7 +154,9 @@ class LLMClient:
             messages.append({"role": "user", "content": prompt})
 
         max_tokens = self.max_tokens if self.max_tokens is not None else TEXT_MAX_TOKENS
-        temperature = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+        temperature = (
+            self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+        )
 
         response = self.client.messages.create(
             model=self.model_name,
@@ -192,7 +198,7 @@ class LLMClient:
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:{mime_type};base64,{base64_image}",
-                                "detail": "high"
+                                "detail": "high",
                             },
                         },
                     ],
@@ -201,7 +207,9 @@ class LLMClient:
         else:
             messages.append({"role": "user", "content": prompt})
 
-        temperature = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+        temperature = (
+            self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+        )
         max_tokens = self.max_tokens if self.max_tokens is not None else TEXT_MAX_TOKENS
 
         response = self.client.chat.completions.create(
@@ -219,19 +227,19 @@ class LLMClient:
             logger.warning("parse_json_response called with empty text")
             return None
 
-        match = re.search(r'```(?:json)?\s*(.*?)\s*```', response_text, re.DOTALL)
+        match = re.search(r"```(?:json)?\s*(.*?)\s*```", response_text, re.DOTALL)
         if match:
             text = match.group(1)
         else:
             text = response_text
 
-        start = text.find('{')
-        end = text.rfind('}')
+        start = text.find("{")
+        end = text.rfind("}")
         if start == -1 or end == -1 or end <= start:
             logger.warning(f"No JSON object found in response: {response_text[:300]}")
             return None
 
-        json_str = text[start:end + 1]
+        json_str = text[start : end + 1]
 
         try:
             return json.loads(json_str)

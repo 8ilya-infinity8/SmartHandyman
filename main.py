@@ -84,10 +84,14 @@ def check_api_key():
     """Check if API key is configured."""
     if not ACTIVE_API_KEY:
         if LLM_PROVIDER == "openai":
-            st.error("⚠️ API ключ OpenAI не настроен! Создайте файл .env и добавьте OPENAI_API_KEY")
+            st.error(
+                "⚠️ API ключ OpenAI не настроен! Создайте файл .env и добавьте OPENAI_API_KEY"
+            )
             st.info("Получите API ключ на https://platform.openai.com/api-keys")
         else:
-            st.error("⚠️ API ключ Claude не настроен! Создайте файл .env и добавьте CLAUDE_API_KEY и CLAUDE_BASE_URL")
+            st.error(
+                "⚠️ API ключ Claude не настроен! Создайте файл .env и добавьте CLAUDE_API_KEY и CLAUDE_BASE_URL"
+            )
             st.info("Получите API ключ у вашего провайдера Claude API")
         st.stop()
 
@@ -210,7 +214,9 @@ def show_analysis_step():
     if not st.session_state.analysis_result:
         with st.spinner("Анализирую изображение с помощью Vision AI..."):
             analyzer = VisionAnalyzer()
-            st.session_state.analysis_result = analyzer.analyze_image(st.session_state.uploaded_image)
+            st.session_state.analysis_result = analyzer.analyze_image(
+                st.session_state.uploaded_image
+            )
 
     result = st.session_state.analysis_result
 
@@ -435,7 +441,9 @@ def show_shopping_step():
     st.success("✅ Диагностика завершена! Удачного ремонта!")
 
     st.divider()
-    if st.button("🔄 Начать новую диагностику", type="primary", use_container_width=True):
+    if st.button(
+        "🔄 Начать новую диагностику", type="primary", use_container_width=True
+    ):
         reset_workflow()
         st.rerun()
 

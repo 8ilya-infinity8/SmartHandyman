@@ -2,8 +2,6 @@
 
 from llm_client import LLMClient
 from config import TEXT_MODEL
-import requests
-from bs4 import BeautifulSoup
 
 
 class InstructionGenerator:
@@ -17,6 +15,7 @@ class InstructionGenerator:
         query = f"{object_name} {diagnosis}"
         try:
             from rag.retriever import load_retriever
+
             hits = load_retriever().search(query, k=5, min_score=0.0)
             return {"hits": hits, "query": query}
         except Exception as e:
@@ -49,7 +48,11 @@ class InstructionGenerator:
                 snippet = h.get("text", "")[:600]
                 src = h.get("title") or h.get("source") or h.get("provider") or "—"
                 pieces.append(f"[{i}] {src}:\n{snippet}")
-            rag_context = "\n\nРелевантные материалы из базы знаний:\n" + "\n---\n".join(pieces) + "\n\nИспользуй эти материалы при составлении инструкции.\n"
+            rag_context = (
+                "\n\nРелевантные материалы из базы знаний:\n"
+                + "\n---\n".join(pieces)
+                + "\n\nИспользуй эти материалы при составлении инструкции.\n"
+            )
 
         prompt = f"""Ты опытный мастер по ремонту. Составь подробную пошаговую инструкцию.
 
@@ -195,7 +198,12 @@ class InstructionGenerator:
 
         sources = instructions.get("sources", [])
         if sources:
-            names = [s.get("title") or s.get("source") or "—" if isinstance(s, dict) else str(s) for s in sources]
+            names = [
+                s.get("title") or s.get("source") or "—"
+                if isinstance(s, dict)
+                else str(s)
+                for s in sources
+            ]
             output.append(f"\n\n*Источники: {', '.join(names)}*")
 
         return "\n".join(output)

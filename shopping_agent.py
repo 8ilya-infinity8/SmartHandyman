@@ -29,19 +29,21 @@ class ShoppingAgent:
 
         print("📋 Структурирую список покупок через LLM...")
         structured_items = self._extract_items_structure(all_items)
-        
+
         enriched_items = []
         for item in structured_items:
-            print(f"🔄 Ищу цену для: {item['name']}...") 
-            
+            print(f"🔄 Ищу цену для: {item['name']}...")
+
             live_price_data = self._fetch_live_price(item["name"])
-            
-            item.update({
-                "estimated_price": live_price_data["price"],
-                "where_to_buy": live_price_data["source"],
-            })
+
+            item.update(
+                {
+                    "estimated_price": live_price_data["price"],
+                    "where_to_buy": live_price_data["source"],
+                }
+            )
             enriched_items.append(item)
-            
+
             time.sleep(2.5)
 
         return {"items": enriched_items, "total_items": len(enriched_items)}
@@ -68,7 +70,11 @@ class ShoppingAgent:
         try:
             response_text = self.client.generate_content(prompt)
             parsed = self.client.parse_json_response(response_text)
-            return parsed if isinstance(parsed, list) else self._fallback_structure(raw_items)
+            return (
+                parsed
+                if isinstance(parsed, list)
+                else self._fallback_structure(raw_items)
+            )
         except Exception as e:
             print(f"❌ Ошибка при структурировании списка: {e}")
             return self._fallback_structure(raw_items)
@@ -76,24 +82,26 @@ class ShoppingAgent:
     def _fetch_live_price(self, item_name: str) -> Dict[str, Any]:
         """Searches the web for the item to find actual current prices (RAG implementation)."""
         clean_name = item_name.strip()
-        
+
         query = f"купить {clean_name} строительный магазин цена руб"
-        
+
         try:
-            results = self.ddgs.text(query, region='ru-ru', max_results=4, backend='html')
-            
+            results = self.ddgs.text(
+                query, region="ru-ru", max_results=4, backend="html"
+            )
+
             if not results:
                 print(f"   ❌ Поисковик не выдал результатов для '{item_name}'")
                 raise ValueError("No search results")
 
             clean_snippets = []
             for r in results:
-                title = r.get('title', '').replace('{', '').replace('}', '')
-                body = r.get('body', '').replace('{', '').replace('}', '')
+                title = r.get("title", "").replace("{", "").replace("}", "")
+                body = r.get("body", "").replace("{", "").replace("}", "")
                 clean_snippets.append(f"Сайт: {title} | Текст: {body}")
-            
+
             context = "\n".join(clean_snippets)
-            
+
             prompt = f"""Пожалуйста, помоги составить смету для домашнего ремонта. Извлеки актуальную цену для товара "{item_name}" на основе этих сниппетов из поисковика:
 
 <search_results>
@@ -111,54 +119,70 @@ class ShoppingAgent:
     "price": 450,
     "source": "Петрович"
 }}"""
-            
+
             response = self.client.generate_content(prompt)
             data = self.client.parse_json_response(response)
-            
+
             if data and "price" in data:
                 raw_price = data["price"]
-                
+
                 if isinstance(raw_price, (int, float)):
                     clean_price = int(raw_price)
                 else:
-                    base_price_str = str(raw_price).replace(',', '.').split('.')[0]
-                    digits_only = ''.join(filter(str.isdigit, base_price_str))
+                    base_price_str = str(raw_price).replace(",", ".").split(".")[0]
+                    digits_only = "".join(filter(str.isdigit, base_price_str))
                     clean_price = int(digits_only) if digits_only else 300
-                
-                print(f"   ✅ Найдена цена: {clean_price} руб. ({data.get('source', 'Интернет')})")
+
+                print(
+                    f"   ✅ Найдена цена: {clean_price} руб. ({data.get('source', 'Интернет')})"
+                )
                 return {
                     "price": clean_price,
-                    "source": data.get("source", "Онлайн-магазины")
+                    "source": data.get("source", "Онлайн-магазины"),
                 }
             else:
-                response_str = str(response) if response else "Пустой или нечитаемый ответ"
-                clean_error_msg = response_str.replace('\n', ' ')[:70]
+                response_str = (
+                    str(response) if response else "Пустой или нечитаемый ответ"
+                )
+                clean_error_msg = response_str.replace("\n", " ")[:70]
                 print(f"   ⚠️ LLM не дала JSON. Ответ: {clean_error_msg}...")
-                
+
         except Exception as e:
             print(f"   ❌ Ошибка при поиске '{item_name}': {type(e).__name__} - {e}")
-            
+
         return {"price": 300, "source": "Ориентировочная цена"}
 
     def _fallback_structure(self, raw_items: List[str]) -> List[Dict[str, Any]]:
         """Provides graceful degradation if the LLM fails to parse the JSON structure."""
-        materials_keywords = ["клей", "лента", "герметик", "пена", "букса", "провод", "кабель", "прокладка"]
+        materials_keywords = [
+            "клей",
+            "лента",
+            "герметик",
+            "пена",
+            "букса",
+            "провод",
+            "кабель",
+            "прокладка",
+        ]
         return [
             {
                 "name": item,
-                "category": "материал" if any(x in item.lower() for x in materials_keywords) else "инструмент",
+                "category": "материал"
+                if any(x in item.lower() for x in materials_keywords)
+                else "инструмент",
                 "quantity": "1 шт",
-                "optional": False
-            } for item in raw_items
+                "optional": False,
+            }
+            for item in raw_items
         ]
 
     def estimate_total_cost(self, shopping_list: Dict[str, Any]) -> Dict[str, Any]:
         """Calculates totals dynamically based on enriched items with actual prices."""
         items = shopping_list.get("items", [])
-        
+
         total_materials = 0
         total_tools = 0
-        
+
         for item in items:
             price = item.get("estimated_price", 0)
             if item.get("category") == "инструмент":
@@ -176,20 +200,24 @@ class ShoppingAgent:
         }
 
     @staticmethod
-    def format_shopping_list(shopping_list: Dict[str, Any], cost_estimate: Dict[str, Any]) -> str:
+    def format_shopping_list(
+        shopping_list: Dict[str, Any], cost_estimate: Dict[str, Any]
+    ) -> str:
         """Formats the generated list and cost estimate cleanly for markdown rendering."""
         if not shopping_list.get("items"):
             return "*Список покупок пуст. Похоже, у вас уже всё есть!*"
 
         lines = ["# 🛒 Список необходимых покупок\n"]
-        
+
         for item in shopping_list["items"]:
             req_mark = "*(Опционально)*" if item.get("optional") else ""
             icon = "🔧" if item.get("category") == "инструмент" else "📦"
-            
+
             lines.append(f"### {icon} {item['name']} {req_mark}")
             lines.append(f"- **Цена:** ~{item.get('estimated_price', 0)} ₽")
-            lines.append(f"- **Где искать:** {item.get('where_to_buy', 'Строительный магазин')}")
+            lines.append(
+                f"- **Где искать:** {item.get('where_to_buy', 'Строительный магазин')}"
+            )
             lines.append(f"- **Кол-во:** {item.get('quantity', '1 шт')}\n")
 
         lines.append("---\n")
@@ -197,7 +225,7 @@ class ShoppingAgent:
         lines.append(f"- **Расходные материалы:** {cost_estimate['materials_cost']} ₽")
         lines.append(f"- **Инструменты:** {cost_estimate['tools_cost']} ₽")
         lines.append(f"**ИТОГО:** ~{cost_estimate['total_cost']} ₽\n")
-        
+
         lines.append("*(Цены собраны из открытых источников в реальном времени)*")
-        
+
         return "\n".join(lines)

@@ -1,7 +1,6 @@
 import os
 
 import streamlit as st
-from api_client import BASE_URL
 
 # Публичный URL backend-а для браузера (по умолчанию localhost:8000).
 PUBLIC_BACKEND_URL = os.getenv("PUBLIC_BACKEND_URL", "http://localhost:8000")
