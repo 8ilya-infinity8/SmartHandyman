@@ -1,7 +1,7 @@
 """ensure messages.created_at has server default
 
 Revision ID: 20260308_fix_message_timestamp
-Revises: 20260307_add_chat_timestamps_default
+Revises: 20260307_chat_ts_default
 Create Date: 2026-03-08 00:00:00.000000
 """
 
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "20260308_fix_message_timestamp"
-down_revision = "20260307_add_chat_timestamps_default"
+down_revision = "20260307_chat_ts_default"
 branch_labels = None
 depends_on = None
 

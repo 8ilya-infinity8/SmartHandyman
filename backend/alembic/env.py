@@ -2,12 +2,27 @@ import os
 import sys
 from logging.config import fileConfig
 
+import sqlalchemy as sa
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Ensure Alembic uses the same DATABASE_URL as the application settings.
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+)  # поднимаемся в backend/
+from app.config import settings  # noqa: E402
+
+# Alembic использует синхронный движок, поэтому для него нужен sync-драйвер.
+# Если приложение работает через asyncpg, подменяем его на psycopg2.
+db_url = settings.DATABASE_URL
+if "+asyncpg" in db_url:
+    db_url = db_url.replace("+asyncpg", "+psycopg2")
+
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -21,8 +36,8 @@ if config.config_file_name is not None:
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )  # поднимаемся в backend/
-from app.database.base import Base
-from app.database.models import chat, message, user
+from app.database.base import Base  # noqa: E402
+from app.database.models import chat, message, user  # noqa: E402
 
 target_metadata = Base.metadata
 
@@ -50,6 +65,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        # делаем колонку alembic_version.version_num достаточно длинной
+        version_table_column_type=sa.String(255),
     )
 
     with context.begin_transaction():
@@ -70,7 +87,11 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            version_table_column_type=sa.String(255),
+        )
 
         with context.begin_transaction():
             context.run_migrations()

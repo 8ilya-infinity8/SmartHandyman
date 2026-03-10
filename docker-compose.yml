@@ -13,5 +13,34 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smarthandyman_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@db:5432/smarthandyman
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: smarthandyman_frontend
+    environment:
+      # фронт внутри сети Docker обращается к backend по имени сервиса
+      BACKEND_BASE_URL: http://backend:8000/api/v1
+      # а браузер снаружи видит backend по localhost:8000
+      PUBLIC_BACKEND_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "8501:8501"
+
 volumes:
   postgres_data:

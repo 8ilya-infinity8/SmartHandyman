@@ -38,6 +38,9 @@ Thumbs.db
 chroma_db/
 *.log
 
+# storage bucket files (user uploads)
+buckets/
+
 # Temporary files
 *.tmp
 .cache/

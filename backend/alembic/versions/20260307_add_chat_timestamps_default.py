@@ -1,6 +1,6 @@
 """add server defaults for chat timestamps
 
-Revision ID: 20260307_add_chat_timestamps_default
+Revision ID: 20260307_chat_ts_default
 Revises: 59edb9b4cb48
 Create Date: 2026-03-06 12:00:00.000000
 """
@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "20260307_add_chat_timestamps_default"
+revision = "20260307_chat_ts_default"
 down_revision = "59edb9b4cb48"
 branch_labels = None
 depends_on = None

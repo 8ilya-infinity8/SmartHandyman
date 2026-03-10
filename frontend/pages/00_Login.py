@@ -1,8 +1,8 @@
 import streamlit as st
-from api_client import register
+from api_client import login
 
 st.set_page_config(
-    page_title="SmartHandyman - Register",
+    page_title="SmartHandyman - Login",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -14,7 +14,7 @@ st.markdown(
         background-color: #050816;
         color: #e5e7eb;
     }
-    .register-card {
+    .login-card {
         max-width: 420px;
         margin: 7vh auto 0;
         padding: 2rem 1.6rem 1.5rem;
@@ -23,14 +23,14 @@ st.markdown(
         border: 1px solid rgba(148, 163, 184, 0.35);
         box-shadow: 0 24px 65px rgba(0, 0, 0, 0.9);
     }
-    .register-title {
+    .login-title {
         font-size: 1.4rem;
         font-weight: 600;
         margin-bottom: 0.25rem;
         text-align: center;
         color: #e5e7eb;
     }
-    .register-subtitle {
+    .login-subtitle {
         font-size: 0.9rem;
         color: #9ca3af;
         text-align: center;
@@ -49,6 +49,20 @@ st.markdown(
     div.stButton>button:hover {
         background: linear-gradient(135deg, #16a34a, #15803d);
     }
+    .login-footer {
+        margin-top: 1.2rem;
+        font-size: 0.9rem;
+        text-align: center;
+        color: #9ca3af;
+    }
+    .login-footer a {
+        color: #22c55e;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .login-footer a:hover {
+        text-decoration: underline;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -56,32 +70,38 @@ st.markdown(
 
 st.markdown(
     """
-    <div class="register-card">
-        <div class="register-title">Создать аккаунт</div>
-        <div class="register-subtitle">Зарегистрируйтесь, чтобы начать пользоваться SmartHandyman.</div>
+    <div class="login-card">
+        <div class="login-title">SmartHandyman</div>
+        <div class="login-subtitle">Sign in to start chatting with your handyman assistant.</div>
     """,
     unsafe_allow_html=True,
 )
 
 if "token" in st.session_state and st.session_state.get("token"):
-    st.success("You are already logged in.")
-    st.write("Use the sidebar to go to the chat list.")
+    st.success("You are already logged in. Open the Chats page from the sidebar.")
 else:
     email = st.text_input("Email")
-    username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    password2 = st.text_input("Confirm password", type="password")
-    if st.button("Register"):
-        if not email or not username or not password:
-            st.error("All fields are required.")
-        elif password != password2:
-            st.error("Passwords do not match.")
-        else:
-            try:
-                resp = register(email, username, password)
-                st.success(
-                    "Registration successful! You can now log in by selecting the Login page from the sidebar."
-                )
-            except Exception as e:
-                st.error(f"Registration failed: {e}")
-st.markdown("</div>", unsafe_allow_html=True)
+    if st.button("Log in"):
+        try:
+            resp = login(email, password)
+            token = resp.get("access_token")
+            if token:
+                st.session_state["token"] = token
+                st.success("Login successful! Open the Chats page from the sidebar.")
+            else:
+                st.error("Login response did not contain token.")
+        except Exception as e:
+            st.error(f"Login failed: {e}")
+
+st.markdown(
+    """
+        <div class="login-footer">
+            Впервые тут?
+            <a href="/Register">зарегистрируйтесь</a>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+

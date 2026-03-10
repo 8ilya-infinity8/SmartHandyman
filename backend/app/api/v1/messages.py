@@ -53,6 +53,7 @@ async def create_message(
         chat_id=message.chat_id,
         role=message.role,
         content=message.content,
+        attachment_url=message.attachment_url,
     )
 
     db.add(new_message)
