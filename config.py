@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -68,5 +69,6 @@ TEXT_MAX_TOKENS = 4096
 DIAGNOSTIC_MAX_TOKENS = 4096
 
 # RAG settings
-CHROMA_DB_PATH = "./rag/rag_store"
+# config.py
+CHROMA_DB_PATH = "/app/rag/rag_store"
 EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
