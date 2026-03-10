@@ -83,7 +83,7 @@ class LLMClient:
                 last_error = e
                 error_str = str(e).lower()
 
-                if any(word in error_str for word in ["auth", "api_key", "invalid_api", "permission"]):
+                if any(word in error_str for word in ["auth", "api_key", "invalid_api", "invalid_request", "permission"]):
                     logger.error(f"Auth/validation error, not retrying: {e}")
                     raise
 
@@ -167,11 +167,16 @@ class LLMClient:
 
         return "\n".join(text_parts) if text_parts else ""
 
+    OPENAI_REASONING_PREFIXES = ("o1", "o3", "o4", "gpt-5")
+
+    def _is_openai_reasoning_model(self):
+        """Check if current OpenAI model is a reasoning model."""
+        model = self.model_name.lower()
+        return any(model.startswith(p) for p in self.OPENAI_REASONING_PREFIXES)
+
     def _generate_openai(self, prompt, image=None):
         """
         Generate content using OpenAI API.
-
-        Handles image encoding and uses configured temperature/max_tokens.
         """
         messages = [
             {
@@ -201,15 +206,20 @@ class LLMClient:
         else:
             messages.append({"role": "user", "content": prompt})
 
-        temperature = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
         max_tokens = self.max_tokens if self.max_tokens is not None else TEXT_MAX_TOKENS
 
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
+        params = {
+            "model": self.model_name,
+            "messages": messages,
+            "max_completion_tokens": max_tokens,
+        }
+
+        if self._is_openai_reasoning_model():
+            logger.debug(f"Reasoning model detected ({self.model_name}), skipping temperature")
+        else:
+            params["temperature"] = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+
+        response = self.client.chat.completions.create(**params)
 
         return response.choices[0].message.content
 

@@ -1,5 +1,3 @@
-"""Main Streamlit application for home repair assistant."""
-
 import streamlit as st
 from vision_analyzer import VisionAnalyzer
 from diagnostic_agent import DiagnosticAgent
@@ -8,7 +6,6 @@ from instruction_generator import InstructionGenerator
 from shopping_agent import ShoppingAgent
 from config import LLM_PROVIDER, ACTIVE_API_KEY
 
-# Page configuration
 st.set_page_config(
     page_title="Помощник по ремонту",
     page_icon="🔧",
@@ -16,7 +13,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS
 st.markdown(
     """
     <style>
@@ -57,7 +53,6 @@ st.markdown(
 )
 
 
-# Initialize session state
 def init_session_state():
     """Initialize session state variables."""
     if "step" not in st.session_state:
@@ -265,7 +260,6 @@ def show_questions_step():
 
     agent = DiagnosticAgent()
 
-    # Generate questions if not done
     if not st.session_state.questions:
         with st.spinner("Генерирую вопросы..."):
             questions = agent.generate_questions(
@@ -274,7 +268,6 @@ def show_questions_step():
             )
             st.session_state.questions = questions
 
-    # Display questions
     if st.session_state.questions:
         with st.form("diagnostic_questions"):
             answers = {}
@@ -301,7 +294,6 @@ def show_questions_step():
             if submit and answers:
                 st.session_state.answers.update(answers)
 
-                # Analyze answers
                 with st.spinner("Анализирую ответы..."):
                     diagnosis = agent.analyze_answers(
                         st.session_state.analysis_result, st.session_state.answers
@@ -312,7 +304,6 @@ def show_questions_step():
                 st.rerun()
 
             elif skip:
-                # Analyze only by photo
                 with st.spinner("Формирую базовый диагноз..."):
                     diagnosis = agent.analyze_answers(
                         st.session_state.analysis_result, {}
@@ -346,7 +337,6 @@ def show_safety_step():
             f'<div class="success-box">{safety_message}</div>', unsafe_allow_html=True
         )
 
-    # Show refined diagnosis
     if st.session_state.diagnosis:
         st.subheader("🔬 Уточненный диагноз")
         st.write(f"**Диагноз:** {st.session_state.diagnosis.get('refined_diagnosis')}")
@@ -360,7 +350,6 @@ def show_safety_step():
         confidence = st.session_state.diagnosis.get("confidence", 0)
         st.metric("Уверенность в диагнозе", f"{confidence}%")
 
-    # Warning if professional needed
     if safety_info.get("requires_professional"):
         st.error(
             "⚠️ **ВНИМАНИЕ:** Рекомендуется обратиться к профессионалу для выполнения этого ремонта."
@@ -398,7 +387,6 @@ def show_instructions_step():
             )
             st.session_state.instructions = instructions
 
-    # Display instructions
     instructions = st.session_state.instructions
     formatted = InstructionGenerator.format_instructions(instructions)
     st.markdown(formatted)
