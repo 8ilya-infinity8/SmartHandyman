@@ -16,7 +16,7 @@ class InstructionGenerator:
         """Ищет релевантные чанки через FAISS. Если недоступен — пустой результат."""
         query = f"{object_name} {diagnosis}"
         try:
-            from retriever import load_retriever
+            from rag.retriever import load_retriever
             hits = load_retriever().search(query, k=5, min_score=0.0)
             return {"hits": hits, "query": query}
         except Exception as e:

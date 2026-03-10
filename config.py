@@ -68,5 +68,5 @@ TEXT_MAX_TOKENS = 4096
 DIAGNOSTIC_MAX_TOKENS = 1024
 
 # RAG settings
-CHROMA_DB_PATH = "./rag_store"
+CHROMA_DB_PATH = "./rag/rag_store"
 EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"

@@ -16,7 +16,7 @@ import numpy as np
 
 from config import CHROMA_DB_PATH, EMBEDDING_MODEL
 
-INDEX_DIR = Path(CHROMA_DB_PATH) if CHROMA_DB_PATH else Path("rag_store")
+INDEX_DIR = Path(CHROMA_DB_PATH) if CHROMA_DB_PATH else Path("rag/rag_store")
 
 # ─── Синглтон ────────────────────────────────────────────────────────────────
 # Модель и индекс живут здесь всё время работы процесса.

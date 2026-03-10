@@ -45,7 +45,7 @@ pip install -r requirements.txt
 **Зависимости:** Все остальные модули
 
 ### RAG и генерация инструкций
-**Файл:** `instruction_generator.py`
+**Папка:** `rag/` (интеграция в `instruction_generator.py`)
 
 **Что можно улучшать:**
 - Интеграция с реальными базами знаний (iFixit, WikiHow)

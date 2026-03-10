@@ -4,7 +4,7 @@
 моделью MiniLM (лёгкая, ~120 МБ, совместима с config.py).
 
 Запуск:
-    python rebuild_index.py
+    python -m rag.index_corpus
 """
 
 import pickle
@@ -14,7 +14,9 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
-RAG_DIR = Path("rag_store")
+from config import CHROMA_DB_PATH
+
+RAG_DIR = Path(CHROMA_DB_PATH) if CHROMA_DB_PATH else Path("rag/rag_store")
 MODEL   = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
