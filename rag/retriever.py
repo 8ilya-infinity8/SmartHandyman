@@ -7,7 +7,13 @@
 Интерфейс: search(query, k, min_score) — совместим с instruction_generator.py.
 """
 
-from __future__ import annotations
+import sys
+import os
+
+# Добавить корень проекта (на два уровня вверх от текущего файла)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+
 import pickle
 from pathlib import Path
 from typing import List, Dict, Optional

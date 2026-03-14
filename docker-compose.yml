@@ -1,46 +1,18 @@
 version: "3.9"
 
 services:
-  db:
-    image: postgres:16
-    container_name: smarthandyman_db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: smarthandyman
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  backend:
+  app:
     build:
       context: .
-      dockerfile: backend/Dockerfile
-    container_name: smarthandyman_backend
+      dockerfile: Dockerfile
+    container_name: smarthandyman_app
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:password@db:5432/smarthandyman
-    depends_on:
-      - db
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./storage:/app/storage
-
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-    container_name: smarthandyman_frontend
-    environment:
-      # фронт внутри сети Docker обращается к backend по имени сервиса
-      BACKEND_BASE_URL: http://backend:8000/api/v1
-      # а браузер снаружи видит backend по localhost:8000
-      PUBLIC_BACKEND_URL: http://localhost:8000
-    depends_on:
-      - backend
+      LLM_PROVIDER: ${LLM_PROVIDER:-claude}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      CLAUDE_BASE_URL: ${CLAUDE_BASE_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "8501:8501"
-
-volumes:
-  postgres_data:
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./rag/rag_store:/app/rag/rag_store

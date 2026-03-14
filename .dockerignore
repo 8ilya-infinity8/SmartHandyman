@@ -1,0 +1,68 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker (исключаем из контекста, но не из образа)
+Dockerfile.old
+docker-compose.old.yml
+
+# Ruff cache
+.ruff_cache/
+
+# Исключаем backend и frontend (не нужны для main.py)
+backend/
+frontend/
+
+# Streamlit config
+.streamlit/
+
+# Logs
+*.log
+
+# Storage bucket files (user uploads)
+buckets/
+storage/
+
+# Temporary files
+*.tmp
+.cache/
+
+# Profiling results
+profiling_results/
+*.html
+*.json
+!rag/rag_store/
+
+# Jupyter notebooks (не нужны в prod)
+*.ipynb

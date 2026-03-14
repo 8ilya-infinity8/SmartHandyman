@@ -60,7 +60,7 @@ class InstructionGenerator:
 Проблема: {problem}
 Возможные причины: {", ".join(diagnosis.get("probable_causes", []))}
 {rag_context}
-Создай инструкцию по ремонту в формате JSON:
+Ответь ТОЛЬКО в формате JSON (без вводного текста, без markdown):
 {{
     "title": "Название ремонта",
     "difficulty": "легко/средне/сложно",
@@ -82,6 +82,13 @@ class InstructionGenerator:
 
         try:
             response_text = self.client.generate_content(prompt)
+
+            # Логирование ответа для отладки
+            if not response_text or len(response_text.strip()) < 10:
+                print(
+                    f"[InstructionGenerator] Пустой или слишком короткий ответ от LLM: {response_text[:100]!r}"
+                )
+
             result = self.client.parse_json_response(response_text)
 
             if result:
@@ -89,11 +96,15 @@ class InstructionGenerator:
                 return result
             else:
                 # JSON parsing failed, but we have text - parse it manually
+                print(
+                    f"[InstructionGenerator] JSON не распарсен, использую текстовый парсинг. Длина ответа: {len(response_text) if response_text else 0}"
+                )
                 return self._parse_text_instructions(
                     response_text, problem, search_results
                 )
 
         except Exception as e:
+            print(f"[InstructionGenerator] Ошибка генерации инструкции: {e}")
             return {
                 "title": "Инструкция по ремонту",
                 "difficulty": "средне",

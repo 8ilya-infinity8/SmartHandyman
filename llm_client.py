@@ -86,7 +86,13 @@ class LLMClient:
 
                 if any(
                     word in error_str
-                    for word in ["auth", "api_key", "invalid_api", "invalid_request", "permission"]
+                    for word in [
+                        "auth",
+                        "api_key",
+                        "invalid_api",
+                        "invalid_request",
+                        "permission",
+                    ]
                 ):
                     logger.error(f"Auth/validation error, not retrying: {e}")
                     raise
@@ -221,9 +227,13 @@ class LLMClient:
         }
 
         if self._is_openai_reasoning_model():
-            logger.debug(f"Reasoning model detected ({self.model_name}), skipping temperature")
+            logger.debug(
+                f"Reasoning model detected ({self.model_name}), skipping temperature"
+            )
         else:
-            params["temperature"] = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+            params["temperature"] = (
+                self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+            )
 
         response = self.client.chat.completions.create(**params)
 
