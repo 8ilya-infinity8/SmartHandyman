@@ -7,7 +7,7 @@ from rag.retriever import load_retriever
 def test_retriever():
     print("=== ТЕСТ ПОИСКА RAG (только индекс) ===")
     retriever = load_retriever()
-    query = "как почистить стиральную машину"
+    query = "посудомойка не включается"
     hits = retriever.search(query, k=5, min_score=0.3)
     print(f"Запрос: {query}")
     print(f"Найдено чанков: {len(hits)}")
