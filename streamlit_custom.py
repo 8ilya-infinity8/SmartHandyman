@@ -79,48 +79,106 @@ st.markdown("""
     
     /* Buttons */
     .stButton > button {
-        background: rgba(255, 255, 255, 0.12);
-        color: #e2e8f0;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 8px;
-        padding: 0.45rem 1.4rem;
-        min-height: 2.1rem;
+        background: linear-gradient(135deg, rgba(0, 217, 255, 0.15), rgba(0, 255, 136, 0.1));
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(0, 217, 255, 0.35);
+        border-radius: 10px;
+        padding: 0.5rem 1.4rem;
+        min-height: 2.4rem;
         font-weight: 600;
         font-size: 0.9rem;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
-        box-shadow: none;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 12px rgba(0, 217, 255, 0.08);
     }
     
     .stButton > button:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(103, 232, 249, 0.6);
+        background: linear-gradient(135deg, rgba(0, 217, 255, 0.28), rgba(0, 255, 136, 0.2));
+        border-color: rgba(0, 217, 255, 0.7);
+        box-shadow: 0 0 20px rgba(0, 217, 255, 0.25);
+        transform: translateY(-1px);
+    }
+
+    .stButton > button:active {
+        transform: translateY(0px);
+        box-shadow: 0 0 10px rgba(0, 217, 255, 0.15);
+    }
+
+    /* Primary buttons */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #00d9ff, #00ff88);
+        color: #1a1a2e !important;
+        border: none;
+        box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #33e1ff, #33ff9f);
+        box-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+        transform: translateY(-1px);
     }
 
     /* Form submit buttons (st.form_submit_button) */
     [data-testid="stFormSubmitButton"] > button {
-        background: rgba(255, 255, 255, 0.12);
+        background: linear-gradient(135deg, rgba(0, 217, 255, 0.15), rgba(0, 255, 136, 0.1));
         color: #e2e8f0 !important;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 8px;
-        padding: 0.45rem 1.4rem;
-        min-height: 2.1rem;
+        border: 1px solid rgba(0, 217, 255, 0.35);
+        border-radius: 10px;
+        padding: 0.5rem 1.4rem;
+        min-height: 2.4rem;
         font-weight: 600;
         font-size: 0.9rem;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
-        box-shadow: none;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 12px rgba(0, 217, 255, 0.08);
     }
 
     [data-testid="stFormSubmitButton"] > button:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(103, 232, 249, 0.6);
+        background: linear-gradient(135deg, rgba(0, 217, 255, 0.28), rgba(0, 255, 136, 0.2));
+        border-color: rgba(0, 217, 255, 0.7);
+        box-shadow: 0 0 20px rgba(0, 217, 255, 0.25);
+        transform: translateY(-1px);
+    }
+
+    [data-testid="stFormSubmitButton"] > button[kind="primary"] {
+        background: linear-gradient(135deg, #00d9ff, #00ff88);
+        color: #1a1a2e !important;
+        border: none;
+        box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+    }
+
+    [data-testid="stFormSubmitButton"] > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #33e1ff, #33ff9f);
+        box-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+        transform: translateY(-1px);
     }
 
     [data-testid="stFormSubmitButton"] > button p,
     [data-testid="stFormSubmitButton"] > button span,
     [data-testid="stFormSubmitButton"] > button div {
-        color: #e2e8f0 !important;
+        color: inherit !important;
     }
-    
+
+    /* Browse files button — force dark text on light uploader background */
+    [data-testid="stFileUploaderDropzone"] button {
+        color: #1a1a2e !important;
+        background: rgba(0, 0, 0, 0.07) !important;
+        border-color: rgba(0, 0, 0, 0.18) !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    [data-testid="stFileUploaderDropzone"] button:hover {
+        background: rgba(0, 0, 0, 0.13) !important;
+        border-color: rgba(0, 0, 0, 0.3) !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stFileUploaderDropzone"] button span,
+    [data-testid="stFileUploaderDropzone"] button p {
+        color: #1a1a2e !important;
+    }
     /* Progress bar */
     .progress-container {
         position: relative;
@@ -469,18 +527,11 @@ def render_progress_bar():
     n = len(step_labels)
     max_step_index = n - 1
     safe_step = min(max(st.session_state.step, 0), max_step_index)
-    # fill goes from center of first circle to center of last circle
-    # each step occupies 1/n of the width, center is at (i + 0.5)/n
-    # line starts at center of step 0 = 0.5/n, ends at center of step n-1 = (n-0.5)/n
-    line_start_pct = 100 / (2 * n)   # % from left where line starts
-    line_end_pct   = 100 - line_start_pct  # % from left where line ends
-    line_width_pct = line_end_pct - line_start_pct  # total line width in %
 
-    if max_step_index > 0:
-        fill_ratio = safe_step / max_step_index
-    else:
-        fill_ratio = 0
-    fill_width_pct = fill_ratio * line_width_pct  # fill width relative to container
+    line_start_pct = 100 / (2 * n)
+    line_width_pct = 100 - 2 * line_start_pct
+    fill_ratio = safe_step / max_step_index if max_step_index > 0 else 0
+    fill_width_pct = fill_ratio * line_width_pct
 
     steps_html = []
     for i, label in enumerate(step_labels):
@@ -501,125 +552,59 @@ def render_progress_bar():
             </div>''')
 
     progress_html = f'''
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="utf-8">
+    <!DOCTYPE html><html><head><meta charset="utf-8">
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
       * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-
-      body {{
-        background: transparent;
-        font-family: 'Inter', sans-serif;
-        padding: 8px 0 4px;
-      }}
-
-      .progress-container {{
-        position: relative;
-        padding: 4px 0 8px;
-      }}
-
+      body {{ background: transparent; font-family: 'Inter', sans-serif; padding: 8px 0 4px; }}
+      .progress-container {{ position: relative; padding: 4px 0 8px; }}
       .progress-track {{
-        position: absolute;
-        top: 26px;
-        left: {line_start_pct:.4f}%;
-        width: {line_width_pct:.4f}%;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 999px;
-        z-index: 1;
+        position: absolute; top: 26px;
+        left: {line_start_pct:.4f}%; width: {line_width_pct:.4f}%;
+        height: 3px; background: rgba(255,255,255,0.12);
+        border-radius: 999px; z-index: 1;
       }}
-
       .progress-fill {{
-        position: absolute;
-        top: 26px;
-        left: {line_start_pct:.4f}%;
-        width: {fill_width_pct:.4f}%;
-        height: 3px;
-        background: linear-gradient(90deg, #00d9ff, #00ff88);
-        border-radius: 999px;
-        z-index: 2;
-        transition: width 0.5s ease;
+        position: absolute; top: 26px;
+        left: {line_start_pct:.4f}%; width: {fill_width_pct:.4f}%;
+        height: 3px; background: linear-gradient(90deg, #00d9ff, #00ff88);
+        border-radius: 999px; z-index: 2;
       }}
-
       .progress-steps {{
-        display: grid;
-        grid-template-columns: repeat({n}, 1fr);
-        position: relative;
-        z-index: 3;
+        display: grid; grid-template-columns: repeat({n}, 1fr);
+        position: relative; z-index: 3;
       }}
-
-      .step {{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-      }}
-
+      .step {{ display: flex; flex-direction: column; align-items: center; gap: 6px; }}
       .step-circle {{
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: #8896a5;
-        font-size: 1rem;
-        transition: all 0.3s ease;
+        width: 52px; height: 52px; border-radius: 50%;
+        background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 600; color: #8896a5; font-size: 1rem; transition: all 0.25s ease;
       }}
-
       .step.active .step-circle {{
         background: linear-gradient(135deg, #00d9ff, #00ff88);
-        border-color: transparent;
-        color: #1a1a2e;
-        transform: scale(1.1);
-        box-shadow: 0 0 28px rgba(0, 217, 255, 0.5);
+        border-color: transparent; color: #1a1a2e;
+        transform: scale(1.1); box-shadow: 0 0 28px rgba(0,217,255,0.5);
       }}
-
       .step.completed .step-circle {{
-        background: #00ff88;
-        border-color: #00ff88;
-        color: #1a1a2e;
-        box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        background: #00ff88; border-color: #00ff88; color: #1a1a2e;
+        box-shadow: 0 0 20px rgba(0,255,136,0.4);
       }}
-
       .step-label {{
-        color: #8896a5;
-        font-size: 0.78rem;
-        font-weight: 500;
-        text-align: center;
-        max-width: 90px;
-        line-height: 1.2;
+        color: #8896a5; font-size: 0.78rem; font-weight: 500;
+        text-align: center; max-width: 90px; line-height: 1.2;
       }}
-
-      .step.active .step-label {{
-        color: #00d9ff;
-        text-shadow: 0 0 8px rgba(0, 217, 255, 0.4);
-      }}
-
-      .step.completed .step-label {{
-        color: #00ff88;
-        text-shadow: 0 0 8px rgba(0, 255, 136, 0.35);
-      }}
-    </style>
-    </head>
+      .step.active .step-label {{ color: #00d9ff; text-shadow: 0 0 8px rgba(0,217,255,0.4); }}
+      .step.completed .step-label {{ color: #00ff88; text-shadow: 0 0 8px rgba(0,255,136,0.35); }}
+    </style></head>
     <body>
       <div class="progress-container">
         <div class="progress-track"></div>
         <div class="progress-fill"></div>
-        <div class="progress-steps">
-          {''.join(steps_html)}
-        </div>
+        <div class="progress-steps">{''.join(steps_html)}</div>
       </div>
-    </body>
-    </html>
+    </body></html>
     '''
-
     components.html(progress_html, height=110)
 
 
