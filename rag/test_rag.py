@@ -1,8 +1,15 @@
 import json
 
+import sys
+from pathlib import Path
+
+# Добавляем корень проекта (/app/rag) в sys.path
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()  # если test_rag.py в rag/
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from instruction_generator import InstructionGenerator
 from rag.retriever import load_retriever
-
 
 def test_retriever():
     print("=== ТЕСТ ПОИСКА RAG (только индекс) ===")
