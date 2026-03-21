@@ -1,11 +1,17 @@
+"""Shopping list generator and price estimator."""
+
 import json
+import logging
+import re
+import threading
 import time
-from typing import Dict, List, Any, Optional
+from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import urlparse
 
 from ddgs import DDGS
-from llm_client import LLMClient
+
 from config import TEXT_MODEL
+from llm_client import LLMClient
 
 STORE_NAMES = {
     "ozon.ru": "Ozon",
@@ -39,24 +45,110 @@ def _domain_to_store(url: str) -> str:
     except Exception:
         return "Интернет-магазин"
 
+
+def _extract_json_objects(text: str) -> List[Dict]:
+    """Robustly extract a list of JSON objects from LLM output."""
+    stripped = re.sub(r"^```[a-z]*\n?", "", text.strip(), flags=re.MULTILINE)
+    stripped = re.sub(r"\n?```$", "", stripped, flags=re.MULTILINE).strip()
+
+    try:
+        parsed = json.loads(stripped)
+        if isinstance(parsed, list):
+            return [x for x in parsed if isinstance(x, dict)]
+    except json.JSONDecodeError:
+        pass
+
+    start, end = stripped.find("["), stripped.rfind("]")
+    if start != -1 and end > start:
+        try:
+            parsed = json.loads(stripped[start : end + 1])
+            if isinstance(parsed, list):
+                return [x for x in parsed if isinstance(x, dict)]
+        except json.JSONDecodeError:
+            pass
+
+    objects, pos = [], 0
+    while pos < len(stripped):
+        obj_start = stripped.find("{", pos)
+        if obj_start == -1:
+            break
+        depth, in_string, escape, obj_end = 0, False, False, -1
+        for i in range(obj_start, len(stripped)):
+            ch = stripped[i]
+            if escape:
+                escape = False
+                continue
+            if ch == "\\" and in_string:
+                escape = True
+                continue
+            if ch == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    obj_end = i
+                    break
+        if obj_end == -1:
+            try:
+                obj = json.loads(stripped[obj_start:] + "}")
+                if isinstance(obj, dict) and "name" in obj:
+                    objects.append(obj)
+            except json.JSONDecodeError:
+                pass
+            break
+        try:
+            obj = json.loads(stripped[obj_start : obj_end + 1])
+            if isinstance(obj, dict):
+                objects.append(obj)
+        except json.JSONDecodeError:
+            pass
+        pos = obj_end + 1
+
+    return objects
+
+
+def _parse_dict_response(text: str) -> Optional[Dict]:
+    """Extract the outermost JSON object from LLM response text."""
+    stripped = re.sub(r"^```[a-z]*\n?", "", text.strip(), flags=re.MULTILINE)
+    stripped = re.sub(r"\n?```$", "", stripped, flags=re.MULTILINE).strip()
+    try:
+        parsed = json.loads(stripped)
+        if isinstance(parsed, dict):
+            return parsed
+    except json.JSONDecodeError:
+        pass
+    start, end = stripped.find("{"), stripped.rfind("}")
+    if start != -1 and end > start:
+        try:
+            parsed = json.loads(stripped[start : end + 1])
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+    return None
+
+
 class ShoppingAgent:
     def __init__(self):
         self.client = LLMClient(TEXT_MODEL, use_vision=False)
         self.ddgs = DDGS()
 
-    def get_full_report(self, instructions: Dict[str, Any]) -> Dict[str, Any]:
-        shopping_list = self.generate_shopping_list(instructions)
-        cost_estimate = self.estimate_total_cost(shopping_list)
-        
-        final_output = {
-            "shopping_list_data": shopping_list,
-            "cost_estimate_data": cost_estimate
-        }
-        
-        print(f"Финальный результат работы агента:\n{json.dumps(final_output, indent=2, ensure_ascii=False)}")
-        return final_output
+    def generate_shopping_list(
+        self,
+        instructions: Dict[str, Any],
+        on_item_ready: Optional[Callable[[Dict[str, Any]], None]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate a shopping list.
 
-    def generate_shopping_list(self, instructions: Dict[str, Any]) -> Dict[str, Any]:
+        on_item_ready(item) is called immediately after each item's price
+        is resolved — one item at a time, for real-time UI streaming.
+        """
         tools = instructions.get("tools_needed", [])
         materials = instructions.get("materials_needed", [])
         all_items = tools + materials
@@ -66,56 +158,89 @@ class ShoppingAgent:
 
         print("📋 Структурирую список покупок (автоматически)...")
         structured = self._structure_items(all_items)
+        total = len(structured)
+        print(f"🔍 Ищу цены ({total} товаров)...")
 
-        print(f"🔍 Ищу цены ({len(structured)} товаров)...")
-        self._fill_prices(structured)
+        for idx, item in enumerate(structured):
+            snippets = self._search_item(item["name"], idx + 1, total)
+            price_info = self._extract_price_single(item["name"], snippets)
+            item["estimated_price"] = price_info.get("price", 300)
+            item["where_to_buy"] = price_info.get("source", "Оценка ИИ")
+
+            if on_item_ready is not None:
+                on_item_ready(item)
+
+            if idx < total - 1:
+                time.sleep(0.3)
 
         return {"items": structured, "total_items": len(structured)}
 
+    def generate_shopping_list_async(
+        self,
+        instructions: Dict[str, Any],
+        on_item_ready: Callable[[Dict[str, Any]], None],
+        on_done: Optional[Callable[[Dict[str, Any]], None]] = None,
+    ) -> threading.Thread:
+        """Run generate_shopping_list in a daemon thread. Returns the thread."""
+
+        def _run():
+            result = self.generate_shopping_list(instructions, on_item_ready)
+            if on_done:
+                on_done(result)
+
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+        return t
+
     def _structure_items(self, raw: List[str]) -> List[Dict[str, Any]]:
-        mat_kw = ["клей", "лента", "герметик", "пена", "провод", "кабель", "прокладка", "шланг", "элемент", "припой", "трубка", "панель"]
-        result = []
-        for item in raw:
-            is_material = any(keyword in item.lower() for keyword in mat_kw)
-            result.append({
-                "name": item, 
-                "category": "материал" if is_material else "инструмент",
-                "quantity": "1 шт", 
-                "optional": False
-            })
-        return result
+        text = "\n".join(f"- {x}" for x in raw)
+        prompt = (
+            "Верни JSON-массив для списка товаров.\n\n"
+            f"Список:\n{text}\n\n"
+            "Формат (только JSON, без лишнего текста):\n"
+            '[{"name":"Название","category":"инструмент" или "материал","quantity":"1 шт","optional":false}]'
+        )
+        try:
+            resp = self.client.generate_content(prompt)
+            if resp and resp.strip():
+                objects = _extract_json_objects(resp)
+                if objects:
+                    return objects
+        except Exception as e:
+            logger.warning(f"Structure failed: {e}")
 
-    def _fill_prices(self, items: List[Dict[str, Any]]) -> None:
-        names = [it["name"] for it in items]
-        snippets_map = {}
-        search_batch_size = 5
-        
-        for i, name in enumerate(names):
-            snippets_map[name] = self._search_item(name, i + 1, len(names))
-            if i < len(names) - 1:
-                if (i + 1) % search_batch_size == 0:
-                    print("   ⏳ [Анти-бан] Отдыхаем 3 секунды...")
-                    time.sleep(3.0)
-                else:
-                    time.sleep(1.5)
-
-        found = sum(1 for v in snippets_map.values() if v)
-        print(f"   📊 Результаты: {found}/{len(names)}")
-
-        prices = self._extract_prices(names, snippets_map)
-
-        for item in items:
-            p = prices.get(item["name"], {})
-            item["estimated_price"] = p.get("price", 300)
-            item["where_to_buy"] = p.get("source", "Оценка ИИ")
-
-        print(f"[DEBUG] Итоговый список товаров:\n{json.dumps(items, indent=2, ensure_ascii=False)}")
+        mat_kw = [
+            "клей",
+            "лента",
+            "герметик",
+            "пена",
+            "провод",
+            "кабель",
+            "прокладка",
+            "шланг",
+            "элемент",
+            "припой",
+            "трубка",
+        ]
+        return [
+            {
+                "name": x,
+                "category": "материал"
+                if any(k in x.lower() for k in mat_kw)
+                else "инструмент",
+                "quantity": "1 шт",
+                "optional": False,
+            }
+            for x in raw
+        ]
 
     def _search_item(self, name: str, idx: int, total: int) -> str:
         try:
             results = self.ddgs.text(
                 f"{name} купить цена",
-                region="ru-ru", max_results=5
+                region="ru-ru",
+                max_results=5,
+                backend="html",
             )
             if not results:
                 print(f"   ⚠️ [{idx}/{total}] {name}: 0 результатов")
@@ -132,91 +257,52 @@ class ShoppingAgent:
 
             print(f"   ✅ [{idx}/{total}] {name}: {len(results)} результатов")
             return "\n".join(lines)
-
         except Exception as e:
             print(f"   ❌ [{idx}/{total}] {name}: {e}")
             return ""
 
-    def _extract_prices(self, names: List[str], snippets_map: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
-        result = {}
-        chunk_size = 5
-        
-        for i in range(0, len(names), chunk_size):
-            chunk_names = names[i:i + chunk_size]
-            sections = []
-            
-            for name in chunk_names:
-                snip = snippets_map.get(name, "").strip()
-                sections.append(f"### {name}\n{snip or '(ничего не найдено)'}")
+    def _extract_price_single(self, name: str, snippets: str) -> Dict[str, Any]:
+        """One LLM call to extract price for a single item."""
+        if not snippets.strip():
+            return {"price": 300, "source": "Оценка ИИ"}
 
-            json_items = ",\n".join(f'    "{n}": {{"price": 0, "source": "Оценка ИИ"}}' for n in chunk_names)
+        prompt = (
+            f"Определи розничную цену для товара: «{name}»\n\n"
+            f"Результаты поиска:\n{snippets}\n\n"
+            "Инструкция:\n"
+            "- Бери цену за стандартную розничную упаковку (не за метр/грамм/штуку из набора).\n"
+            "- Название магазина указано в [квадратных скобках] — перенеси в source.\n"
+            '- Если цены нет — оцени сам, source = "Оценка ИИ".\n'
+            "- Верни только JSON без лишнего текста.\n\n"
+            'Формат: {"price": 1500, "source": "Ozon"}'
+        )
+        try:
+            resp = self.client.generate_content(prompt)
+            if resp and resp.strip():
+                data = _parse_dict_response(resp)
+                if isinstance(data, dict) and "price" in data:
+                    raw = data["price"]
+                    return {
+                        "price": int(raw) if isinstance(raw, (int, float)) else 300,
+                        "source": data.get("source", "Интернет-магазин"),
+                    }
+        except Exception as e:
+            logger.warning(f"Price extract failed for '{name}': {e}")
 
-            prompt = f"""Для каждого товара определи розничную цену и магазин.
-
-{chr(10).join(sections)}
-
-Инструкция:
-- Извлеки цену из результатов поиска (целое число).
-- Название магазина указано в квадратных скобках — перенеси его в "source".
-- Если нет данных — оцени стоимость сам.
-- Ответ — ТОЛЬКО JSON-объект.
-
-JSON (ключи = ТОЧНЫЕ названия товаров):
-{{
-{json_items}
-}}"""
-
-            try:
-                resp = self.client.generate_content(prompt)
-                if not resp or not resp.strip():
-                    continue
-
-                data = self.client.parse_json_response(resp)
-                if not isinstance(data, dict):
-                    continue
-
-                for name in chunk_names:
-                    entry = data.get(name) or self._fuzzy_find(name, data)
-                    
-                    if isinstance(entry, dict) and "price" in entry:
-                        raw_price = entry.get("price")
-                        try:
-                            price = int(raw_price)
-                            if price <= 0: price = 300
-                        except (ValueError, TypeError):
-                            price = 300
-                            
-                        result[name] = {
-                            "price": price,
-                            "source": entry.get("source") or "Оценка ИИ",
-                        }
-                    else:
-                        result[name] = {"price": 300, "source": "Оценка ИИ"}
-
-            except Exception as e:
-                print(f"[ERROR] Price extraction failed for chunk: {e}")
-                for name in chunk_names:
-                    result[name] = {"price": 300, "source": "Оценка ИИ"}
-                    
-        real = sum(1 for v in result.values() if v["source"] != "Оценка ИИ")
-        print(f"   💰 Цены: {real}/{len(names)} из магазинов")
-        return result
-
-    @staticmethod
-    def _fuzzy_find(target: str, data: Dict) -> Optional[Dict]:
-        tl = target.lower()
-        for key, val in data.items():
-            if not isinstance(val, dict):
-                continue
-            kl = key.lower()
-            if tl in kl or kl in tl:
-                return val
-        return None
+        return {"price": 300, "source": "Оценка ИИ"}
 
     def estimate_total_cost(self, shopping_list: Dict[str, Any]) -> Dict[str, Any]:
         items = shopping_list.get("items", [])
-        t_mat = sum(it.get("estimated_price", 0) for it in items if it.get("category") != "инструмент")
-        t_tool = sum(it.get("estimated_price", 0) for it in items if it.get("category") == "инструмент")
+        t_mat = sum(
+            it.get("estimated_price", 0)
+            for it in items
+            if it.get("category") != "инструмент"
+        )
+        t_tool = sum(
+            it.get("estimated_price", 0)
+            for it in items
+            if it.get("category") == "инструмент"
+        )
         return {
             "total_cost": t_mat + t_tool,
             "materials_cost": t_mat,
@@ -227,19 +313,21 @@ JSON (ключи = ТОЧНЫЕ названия товаров):
         }
 
     @staticmethod
-    def format_shopping_list(shopping_list: Dict[str, Any], cost_estimate: Dict[str, Any]) -> str:
+    def format_shopping_list(
+        shopping_list: Dict[str, Any], cost_estimate: Dict[str, Any]
+    ) -> str:
         if not shopping_list.get("items"):
             return "*Список покупок пуст.*"
-
         lines = ["# 🛒 Список необходимых покупок\n"]
         for item in shopping_list["items"]:
             opt = " *(Опционально)*" if item.get("optional") else ""
             icon = "🔧" if item.get("category") == "инструмент" else "📦"
             lines.append(f"### {icon} {item['name']}{opt}")
             lines.append(f"- **Цена:** ~{item.get('estimated_price', 0)} ₽")
-            lines.append(f"- **Где купить:** {item.get('where_to_buy', 'Строительный магазин')}")
+            lines.append(
+                f"- **Где купить:** {item.get('where_to_buy', 'Строительный магазин')}"
+            )
             lines.append(f"- **Кол-во:** {item.get('quantity', '1 шт')}\n")
-
         lines.append("---\n## 💰 Итоговая смета")
         lines.append(f"- **Материалы:** {cost_estimate['materials_cost']} ₽")
         lines.append(f"- **Инструменты:** {cost_estimate['tools_cost']} ₽")

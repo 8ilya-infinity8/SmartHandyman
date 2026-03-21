@@ -19,15 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class LLMClient:
-    """
-    Unified client for LLM operations supporting multiple providers.
-    Handles both vision and text tasks.
-    """
-
     def __init__(self, model_name, use_vision=False, temperature=None, max_tokens=None):
         """
-        Initialize LLM client.
-
         Args:
             model_name: Name of the model to use
             use_vision: Whether this client will process images
@@ -57,8 +50,6 @@ class LLMClient:
 
     def generate_content(self, prompt, image=None, max_retries=3):
         """
-        Generate content from text prompt and optional image.
-
         Args:
             prompt: Text prompt
             image: PIL Image or bytes (optional)
@@ -86,7 +77,13 @@ class LLMClient:
 
                 if any(
                     word in error_str
-                    for word in ["auth", "api_key", "invalid_api", "invalid_request", "permission"]
+                    for word in [
+                        "auth",
+                        "api_key",
+                        "invalid_api",
+                        "invalid_request",
+                        "permission",
+                    ]
                 ):
                     logger.error(f"Auth/validation error, not retrying: {e}")
                     raise
@@ -124,11 +121,7 @@ class LLMClient:
         return base64_image, "image/jpeg"
 
     def _generate_claude(self, prompt, image=None):
-        """
-        Generate content using Claude API.
-
-        Handles image encoding and uses configured temperature/max_tokens.
-        """
+        """Handles image encoding and uses configured temperature/max_tokens."""
         messages = []
 
         if image:
@@ -221,9 +214,13 @@ class LLMClient:
         }
 
         if self._is_openai_reasoning_model():
-            logger.debug(f"Reasoning model detected ({self.model_name}), skipping temperature")
+            logger.debug(
+                f"Reasoning model detected ({self.model_name}), skipping temperature"
+            )
         else:
-            params["temperature"] = self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+            params["temperature"] = (
+                self.temperature if self.temperature is not None else TEXT_TEMPERATURE
+            )
 
         response = self.client.chat.completions.create(**params)
 

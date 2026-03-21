@@ -11,6 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from instruction_generator import InstructionGenerator
 from rag.retriever import load_retriever
 
+
 def test_retriever():
     print("=== ТЕСТ ПОИСКА RAG (только индекс) ===")
     retriever = load_retriever()

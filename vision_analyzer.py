@@ -6,12 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 class VisionAnalyzer:
-    """
-    Analyzes images to identify objects and problems using Vision LLM.
-
-    Uses low temperature for precise, factual identification.
-    """
-
     def __init__(self):
         self.client = LLMClient(
             VISION_MODEL,
@@ -22,10 +16,6 @@ class VisionAnalyzer:
 
     def analyze_image(self, image_bytes):
         """
-        Analyze uploaded image to identify the problem.
-
-        Uses structured prompt for consistent, detailed analysis.
-
         Args:
             image_bytes: Image file in bytes
 

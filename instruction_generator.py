@@ -5,8 +5,6 @@ from config import TEXT_MODEL
 
 
 class InstructionGenerator:
-    """Generates step-by-step repair instructions."""
-
     def __init__(self):
         self.client = LLMClient(TEXT_MODEL, use_vision=False)
 
@@ -24,8 +22,6 @@ class InstructionGenerator:
 
     def generate_instructions(self, diagnosis, analysis_result, safety_info):
         """
-        Generate step-by-step repair instructions.
-
         Args:
             diagnosis: Refined diagnosis from diagnostic agent
             analysis_result: Initial vision analysis
