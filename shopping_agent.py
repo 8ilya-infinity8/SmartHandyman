@@ -13,8 +13,6 @@ from ddgs import DDGS
 from config import TEXT_MODEL
 from llm_client import LLMClient
 
-logger = logging.getLogger(__name__)
-
 STORE_NAMES = {
     "ozon.ru": "Ozon",
     "wildberries.ru": "Wildberries",
@@ -34,7 +32,6 @@ STORE_NAMES = {
     "kuvalda.ru": "Кувалда.ру",
     "stroylandiya.ru": "Стройландия",
 }
-
 
 def _domain_to_store(url: str) -> str:
     try:
@@ -159,7 +156,7 @@ class ShoppingAgent:
         if not all_items:
             return {"items": [], "total_items": 0}
 
-        print("📋 Структурирую список покупок...")
+        print("📋 Структурирую список покупок (автоматически)...")
         structured = self._structure_items(all_items)
         total = len(structured)
         print(f"🔍 Ищу цены ({total} товаров)...")
