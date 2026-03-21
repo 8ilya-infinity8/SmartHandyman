@@ -9,7 +9,6 @@ from __future__ import annotations
 import re
 import time
 import pickle
-from collections import Counter
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -38,14 +37,21 @@ EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 IFIXIT_BASE = "https://www.ifixit.com/api/2.0"
 IFIXIT_HEADERS = {"User-Agent": "RAG-Handyman/cli-2.0"}
 
+
 def ifixit_get(endpoint: str, params: dict | None = None) -> Optional[dict]:
     try:
-        resp = requests.get(f"{IFIXIT_BASE}{endpoint}", headers=IFIXIT_HEADERS, params=params, timeout=20)
+        resp = requests.get(
+            f"{IFIXIT_BASE}{endpoint}",
+            headers=IFIXIT_HEADERS,
+            params=params,
+            timeout=20,
+        )
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         print(f"[iFixit] {endpoint}: {e}")
         return None
+
 
 def get_ifixit_guides(category: str) -> List[dict]:
     data = ifixit_get(f"/wikis/CATEGORY/{category}")
@@ -57,8 +63,10 @@ def get_ifixit_guides(category: str) -> List[dict]:
             guides.extend(cl.get("guides", []))
     return guides
 
+
 def get_ifixit_guide(guide_id: int) -> Optional[dict]:
     return ifixit_get(f"/guides/{guide_id}")
+
 
 def parse_ifixit_guide(guide: dict) -> str:
     parts: List[str] = []
@@ -82,7 +90,10 @@ def parse_ifixit_guide(guide: dict) -> str:
                 parts.append(text)
     return "\n".join(filter(None, parts))
 
-def fetch_ifixit_category(category: str, delay: float = 0.7, max_guides: int | None = None) -> List[Dict]:
+
+def fetch_ifixit_category(
+    category: str, delay: float = 0.7, max_guides: int | None = None
+) -> List[Dict]:
     guides_meta = get_ifixit_guides(category)
     if not guides_meta:
         print(f"[iFixit] пустая категория: {category}")
@@ -99,19 +110,25 @@ def fetch_ifixit_category(category: str, delay: float = 0.7, max_guides: int | N
             continue
         text = parse_ifixit_guide(guide)
         if text:
-            results.append({
-                "text": text,
-                "source": f"https://www.ifixit.com/Guide/{guide_id}",
-                "title": guide.get("title", ""),
-                "provider": "ifixit",
-            })
+            results.append(
+                {
+                    "text": text,
+                    "source": f"https://www.ifixit.com/Guide/{guide_id}",
+                    "title": guide.get("title", ""),
+                    "provider": "ifixit",
+                }
+            )
         time.sleep(delay)
     print(f"[iFixit] {category}: {len(results)} гайдов")
     return results
 
+
 # ───────────────────── Чанкование ─────────────────────
 
-def chunk_text(text: str, chunk_size: int = 400, overlap: int = 80, min_chunk_words: int = 30) -> List[str]:
+
+def chunk_text(
+    text: str, chunk_size: int = 400, overlap: int = 80, min_chunk_words: int = 30
+) -> List[str]:
     words = text.split()
     if not words:
         return []
@@ -120,28 +137,35 @@ def chunk_text(text: str, chunk_size: int = 400, overlap: int = 80, min_chunk_wo
         raise ValueError("overlap должен быть меньше chunk_size")
     chunks: List[str] = []
     for i in range(0, len(words), step):
-        chunk_words = words[i:i + chunk_size]
+        chunk_words = words[i : i + chunk_size]
         if len(chunk_words) < min_chunk_words and chunks:
             chunks[-1] += " " + " ".join(chunk_words)
             break
         chunks.append(" ".join(chunk_words))
     return chunks
 
-def documents_to_chunks(documents: List[Dict], chunk_size: int = 400, overlap: int = 80) -> tuple[list[str], list[dict]]:
+
+def documents_to_chunks(
+    documents: List[Dict], chunk_size: int = 400, overlap: int = 80
+) -> tuple[list[str], list[dict]]:
     all_chunks: list[str] = []
     metadata: list[dict] = []
     for doc in documents:
         for chunk in chunk_text(doc["text"], chunk_size=chunk_size, overlap=overlap):
             all_chunks.append(chunk)
-            metadata.append({
-                "source": doc["source"],
-                "title": doc.get("title", ""),
-                "provider": doc.get("provider", "unknown"),
-            })
+            metadata.append(
+                {
+                    "source": doc["source"],
+                    "title": doc.get("title", ""),
+                    "provider": doc.get("provider", "unknown"),
+                }
+            )
     print(f"Итого чанков: {len(all_chunks)}")
     return all_chunks, metadata
 
+
 # ───────────────────── Main ─────────────────────
+
 
 def main() -> None:
     print("PROJECT_ROOT:", PROJECT_ROOT)
@@ -160,11 +184,19 @@ def main() -> None:
         print("Документов нет — ничего не сохраняю.")
         return
 
-    all_chunks, metadata = documents_to_chunks(all_documents, chunk_size=400, overlap=80)
+    all_chunks, metadata = documents_to_chunks(
+        all_documents, chunk_size=400, overlap=80
+    )
 
     print("\nСчитаю эмбеддинги...")
     model = SentenceTransformer(EMBEDDING_MODEL)
-    embeddings = model.encode(all_chunks, batch_size=64, show_progress_bar=True, convert_to_numpy=True, normalize_embeddings=True).astype(np.float32)
+    embeddings = model.encode(
+        all_chunks,
+        batch_size=64,
+        show_progress_bar=True,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+    ).astype(np.float32)
 
     index = faiss.IndexFlatIP(embeddings.shape[1])
     index.add(embeddings)
@@ -176,6 +208,7 @@ def main() -> None:
         pickle.dump(metadata, f)
 
     print("Готово! Индекс сохранен в", INDEX_PATH)
+
 
 if __name__ == "__main__":
     main()

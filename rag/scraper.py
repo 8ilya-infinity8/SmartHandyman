@@ -24,7 +24,7 @@ from tqdm import tqdm
 # НАСТРОЙКИ
 # ══════════════════════════════════════════════════════════════════════════════
 
-OUTPUT_DIR = Path(".")   # куда сохранять jsonl файлы
+OUTPUT_DIR = Path(".")  # куда сохранять jsonl файлы
 
 IFIXIT = dict(
     output="smarthandyman_ifixit.jsonl",
@@ -64,200 +64,219 @@ MASTERGRAD = dict(
 # ══════════════════════════════════════════════════════════════════════════════
 
 IFIXIT_CATEGORIES = [
-    ("Plumbing",                "plumbing"),
-    ("Toilet",                  "plumbing"),
-    ("Faucet",                  "plumbing"),
-    ("Water Heater",            "plumbing"),
-    ("Shower Head",             "plumbing"),
+    ("Plumbing", "plumbing"),
+    ("Toilet", "plumbing"),
+    ("Faucet", "plumbing"),
+    ("Water Heater", "plumbing"),
+    ("Shower Head", "plumbing"),
     ("Water Filtration System", "plumbing"),
-    ("Electrical",              "electrical"),
-    ("Electrical USA",          "electrical"),
-    ("Electrical EU",           "electrical"),
-    ("Door And Window",         "doors_windows"),
-    ("Door Handle",             "doors_windows"),
-    ("Garage Door Opener",      "doors_windows"),
-    ("Blind",                   "doors_windows"),
-    ("Air Conditioning",        "hvac"),
-    ("Boiler",                  "hvac"),
-    ("Heat Pump",               "hvac"),
-    ("Furnace",                 "hvac"),
-    ("Space Heater",            "hvac"),
-    ("Fan",                     "hvac"),
-    ("Refrigerator",            "appliance"),
-    ("Washing Machine",         "appliance"),
-    ("Dryer",                   "appliance"),
-    ("Dishwasher",              "appliance"),
-    ("Stove",                   "appliance"),
-    ("Freezer",                 "appliance"),
-    ("Vacuum Cleaner",          "appliance"),
-    ("Microwave",               "appliance"),
-    ("Garbage Disposal",        "appliance"),
+    ("Electrical", "electrical"),
+    ("Electrical USA", "electrical"),
+    ("Electrical EU", "electrical"),
+    ("Door And Window", "doors_windows"),
+    ("Door Handle", "doors_windows"),
+    ("Garage Door Opener", "doors_windows"),
+    ("Blind", "doors_windows"),
+    ("Air Conditioning", "hvac"),
+    ("Boiler", "hvac"),
+    ("Heat Pump", "hvac"),
+    ("Furnace", "hvac"),
+    ("Space Heater", "hvac"),
+    ("Fan", "hvac"),
+    ("Refrigerator", "appliance"),
+    ("Washing Machine", "appliance"),
+    ("Dryer", "appliance"),
+    ("Dishwasher", "appliance"),
+    ("Stove", "appliance"),
+    ("Freezer", "appliance"),
+    ("Vacuum Cleaner", "appliance"),
+    ("Microwave", "appliance"),
+    ("Garbage Disposal", "appliance"),
 ]
 
 WIKIHOW_CATEGORIES = [
-    ("Air-Conditioning",                    "hvac"),
-    ("Apartment-Living",                    "home_maintenance"),
-    ("Basement-Water-Problems",             "plumbing"),
-    ("Basements-and-Cellars",               "home_maintenance"),
-    ("Bathrooms",                           "home_maintenance"),
-    ("Bathtubs",                            "plumbing"),
-    ("Blocked-Drains",                      "plumbing"),
-    ("Brickwork-and-Stone-Masonry",         "construction"),
-    ("Building-Roofs",                      "construction"),
-    ("Building-Walls",                      "construction"),
-    ("Building-Workbenches",                "diy"),
-    ("Cabinets-and-Cupboards",              "home_maintenance"),
-    ("Carpets-and-Rugs",                    "flooring"),
-    ("Caulking",                            "home_maintenance"),
-    ("Ceiling-Fans",                        "electrical"),
-    ("Ceilings",                            "home_maintenance"),
-    ("Cleaning",                            "home_maintenance"),
-    ("Cleaning-Floors",                     "flooring"),
-    ("Concrete",                            "construction"),
-    ("Cooking-Appliances",                  "appliance"),
-    ("Countertops-and-Kitchen-Benches",     "home_maintenance"),
-    ("DIY",                                 "diy"),
-    ("Disaster-Preparedness",               "home_maintenance"),
-    ("Dishwasher-Repairs",                  "appliance"),
-    ("Dishwashers",                         "appliance"),
-    ("Door-Installation",                   "doors_windows"),
-    ("Door-Repairs",                        "doors_windows"),
-    ("Door-Security",                       "doors_windows"),
-    ("Door-Types",                          "doors_windows"),
-    ("Doors-and-Windows",                   "doors_windows"),
-    ("Drains",                              "plumbing"),
-    ("Dryer-Repairs",                       "appliance"),
-    ("Electrical-Maintenance",              "electrical"),
-    ("Electrical-Power-Storage",            "electrical"),
-    ("Electrical-Projects",                 "electrical"),
-    ("Electrical-Safety",                   "electrical"),
+    ("Air-Conditioning", "hvac"),
+    ("Apartment-Living", "home_maintenance"),
+    ("Basement-Water-Problems", "plumbing"),
+    ("Basements-and-Cellars", "home_maintenance"),
+    ("Bathrooms", "home_maintenance"),
+    ("Bathtubs", "plumbing"),
+    ("Blocked-Drains", "plumbing"),
+    ("Brickwork-and-Stone-Masonry", "construction"),
+    ("Building-Roofs", "construction"),
+    ("Building-Walls", "construction"),
+    ("Building-Workbenches", "diy"),
+    ("Cabinets-and-Cupboards", "home_maintenance"),
+    ("Carpets-and-Rugs", "flooring"),
+    ("Caulking", "home_maintenance"),
+    ("Ceiling-Fans", "electrical"),
+    ("Ceilings", "home_maintenance"),
+    ("Cleaning", "home_maintenance"),
+    ("Cleaning-Floors", "flooring"),
+    ("Concrete", "construction"),
+    ("Cooking-Appliances", "appliance"),
+    ("Countertops-and-Kitchen-Benches", "home_maintenance"),
+    ("DIY", "diy"),
+    ("Disaster-Preparedness", "home_maintenance"),
+    ("Dishwasher-Repairs", "appliance"),
+    ("Dishwashers", "appliance"),
+    ("Door-Installation", "doors_windows"),
+    ("Door-Repairs", "doors_windows"),
+    ("Door-Security", "doors_windows"),
+    ("Door-Types", "doors_windows"),
+    ("Doors-and-Windows", "doors_windows"),
+    ("Drains", "plumbing"),
+    ("Dryer-Repairs", "appliance"),
+    ("Electrical-Maintenance", "electrical"),
+    ("Electrical-Power-Storage", "electrical"),
+    ("Electrical-Projects", "electrical"),
+    ("Electrical-Safety", "electrical"),
     ("Electrical-Wiring-and-Safety-Switches", "electrical"),
-    ("Electrical-and-Electronic-Circuits",  "electrical"),
-    ("Fans-and-Ventilation",                "hvac"),
-    ("Fastening-Tools",                     "diy"),
-    ("Faucet-Repairs",                      "plumbing"),
-    ("Faucets-and-Taps",                    "plumbing"),
-    ("Fences-and-Gates",                    "yard"),
-    ("Fireplaces",                          "hvac"),
-    ("Floor-Care-Appliances",               "appliance"),
-    ("Floor-Repairs",                       "flooring"),
-    ("Floor-Types",                         "flooring"),
-    ("Floors-and-Stairs",                   "flooring"),
-    ("Furnaces",                            "hvac"),
-    ("Furniture",                           "home_maintenance"),
-    ("Furniture-Fixes",                     "home_maintenance"),
-    ("Garage-Doors",                        "doors_windows"),
-    ("Garages",                             "home_maintenance"),
-    ("Hanging-Things",                      "home_maintenance"),
-    ("Heater-Appliances",                   "hvac"),
-    ("Heating-Systems",                     "hvac"),
-    ("Heating-and-Cooling",                 "hvac"),
-    ("Hinges",                              "doors_windows"),
-    ("Holding-and-Support-Tools",           "diy"),
-    ("Hole-Making-Tools",                   "diy"),
-    ("Home-Appliances",                     "appliance"),
-    ("Home-Improvements",                   "home_maintenance"),
-    ("Home-Maintenance",                    "home_maintenance"),
-    ("Home-Repairs",                        "home_maintenance"),
-    ("Home-Security",                       "home_maintenance"),
-    ("Hot-Tubs",                            "plumbing"),
-    ("House-Building",                      "construction"),
-    ("Housekeeping",                        "home_maintenance"),
-    ("Humidity-Appliances",                 "hvac"),
-    ("Indoor-Air-Improvement",              "hvac"),
-    ("Insulation",                          "hvac"),
-    ("Interior-Walls",                      "home_maintenance"),
-    ("Kitchen-Appliances",                  "appliance"),
-    ("Kitchen-Cabinets",                    "home_maintenance"),
-    ("Kitchen-Countertop-Appliances",       "appliance"),
-    ("Kitchen-Remodel-and-Renovation",      "home_maintenance"),
-    ("Kitchens",                            "home_maintenance"),
-    ("Light-Bulbs",                         "electrical"),
-    ("Light-Switches",                      "electrical"),
-    ("Lighting",                            "electrical"),
-    ("Locks-and-Keys",                      "doors_windows"),
-    ("Measuring-Power-Current-and-Energy",  "electrical"),
-    ("Measuring-and-Marking-Tools",         "diy"),
-    ("Moisture-Protection-and-Prevention",  "home_maintenance"),
-    ("Mold-and-Mildew-Treatment",           "home_maintenance"),
-    ("Motors-Generators-and-Transformers",  "electrical"),
-    ("Outdoor-Lights",                      "electrical"),
-    ("Pest-Control",                        "home_maintenance"),
-    ("Piping",                              "plumbing"),
-    ("Plumbing",                            "plumbing"),
-    ("Radiators-for-Buildings",             "hvac"),
-    ("Rain-Gutters-and-Downspouts",         "roofing"),
-    ("Refrigerators-and-Freezers",          "appliance"),
-    ("Renovation-Advice-and-Tips",          "home_maintenance"),
-    ("Roof-Maintenance",                    "roofing"),
-    ("Roofs",                               "roofing"),
-    ("Security-Systems",                    "home_maintenance"),
-    ("Shaping-Tools",                       "diy"),
-    ("Showers",                             "plumbing"),
-    ("Siding",                              "construction"),
-    ("Sinks",                               "plumbing"),
-    ("Soundproofing",                       "home_maintenance"),
-    ("Storms",                              "home_maintenance"),
-    ("Swimming-Pool-Equipment",             "plumbing"),
-    ("Swimming-Pool-Maintenance",           "plumbing"),
-    ("Swimming-Pool-Water-Treatment",       "plumbing"),
-    ("Swimming-Pools",                      "plumbing"),
-    ("Tiles-and-Tiling",                    "flooring"),
-    ("Toilet-Maintenance",                  "plumbing"),
-    ("Toilet-Repairs",                      "plumbing"),
-    ("Toilets",                             "plumbing"),
-    ("Tools",                               "diy"),
-    ("Vacuum-Cleaners",                     "appliance"),
-    ("Wall-Repairs",                        "home_maintenance"),
-    ("Walls-and-Ceilings",                  "home_maintenance"),
-    ("Washing-Machine-Repairs",             "appliance"),
-    ("Washing-Machines-and-Dryers",         "appliance"),
-    ("Waste-Removal-Systems",               "plumbing"),
-    ("Water",                               "plumbing"),
-    ("Water-Filters",                       "plumbing"),
-    ("Water-Heating-Systems",               "plumbing"),
-    ("Winterization",                       "hvac"),
-    ("Woodworking-Tools",                   "diy"),
-    ("Working-with-Concrete-and-Cement",    "construction"),
-    ("Yard-and-Outdoors",                   "yard"),
+    ("Electrical-and-Electronic-Circuits", "electrical"),
+    ("Fans-and-Ventilation", "hvac"),
+    ("Fastening-Tools", "diy"),
+    ("Faucet-Repairs", "plumbing"),
+    ("Faucets-and-Taps", "plumbing"),
+    ("Fences-and-Gates", "yard"),
+    ("Fireplaces", "hvac"),
+    ("Floor-Care-Appliances", "appliance"),
+    ("Floor-Repairs", "flooring"),
+    ("Floor-Types", "flooring"),
+    ("Floors-and-Stairs", "flooring"),
+    ("Furnaces", "hvac"),
+    ("Furniture", "home_maintenance"),
+    ("Furniture-Fixes", "home_maintenance"),
+    ("Garage-Doors", "doors_windows"),
+    ("Garages", "home_maintenance"),
+    ("Hanging-Things", "home_maintenance"),
+    ("Heater-Appliances", "hvac"),
+    ("Heating-Systems", "hvac"),
+    ("Heating-and-Cooling", "hvac"),
+    ("Hinges", "doors_windows"),
+    ("Holding-and-Support-Tools", "diy"),
+    ("Hole-Making-Tools", "diy"),
+    ("Home-Appliances", "appliance"),
+    ("Home-Improvements", "home_maintenance"),
+    ("Home-Maintenance", "home_maintenance"),
+    ("Home-Repairs", "home_maintenance"),
+    ("Home-Security", "home_maintenance"),
+    ("Hot-Tubs", "plumbing"),
+    ("House-Building", "construction"),
+    ("Housekeeping", "home_maintenance"),
+    ("Humidity-Appliances", "hvac"),
+    ("Indoor-Air-Improvement", "hvac"),
+    ("Insulation", "hvac"),
+    ("Interior-Walls", "home_maintenance"),
+    ("Kitchen-Appliances", "appliance"),
+    ("Kitchen-Cabinets", "home_maintenance"),
+    ("Kitchen-Countertop-Appliances", "appliance"),
+    ("Kitchen-Remodel-and-Renovation", "home_maintenance"),
+    ("Kitchens", "home_maintenance"),
+    ("Light-Bulbs", "electrical"),
+    ("Light-Switches", "electrical"),
+    ("Lighting", "electrical"),
+    ("Locks-and-Keys", "doors_windows"),
+    ("Measuring-Power-Current-and-Energy", "electrical"),
+    ("Measuring-and-Marking-Tools", "diy"),
+    ("Moisture-Protection-and-Prevention", "home_maintenance"),
+    ("Mold-and-Mildew-Treatment", "home_maintenance"),
+    ("Motors-Generators-and-Transformers", "electrical"),
+    ("Outdoor-Lights", "electrical"),
+    ("Pest-Control", "home_maintenance"),
+    ("Piping", "plumbing"),
+    ("Plumbing", "plumbing"),
+    ("Radiators-for-Buildings", "hvac"),
+    ("Rain-Gutters-and-Downspouts", "roofing"),
+    ("Refrigerators-and-Freezers", "appliance"),
+    ("Renovation-Advice-and-Tips", "home_maintenance"),
+    ("Roof-Maintenance", "roofing"),
+    ("Roofs", "roofing"),
+    ("Security-Systems", "home_maintenance"),
+    ("Shaping-Tools", "diy"),
+    ("Showers", "plumbing"),
+    ("Siding", "construction"),
+    ("Sinks", "plumbing"),
+    ("Soundproofing", "home_maintenance"),
+    ("Storms", "home_maintenance"),
+    ("Swimming-Pool-Equipment", "plumbing"),
+    ("Swimming-Pool-Maintenance", "plumbing"),
+    ("Swimming-Pool-Water-Treatment", "plumbing"),
+    ("Swimming-Pools", "plumbing"),
+    ("Tiles-and-Tiling", "flooring"),
+    ("Toilet-Maintenance", "plumbing"),
+    ("Toilet-Repairs", "plumbing"),
+    ("Toilets", "plumbing"),
+    ("Tools", "diy"),
+    ("Vacuum-Cleaners", "appliance"),
+    ("Wall-Repairs", "home_maintenance"),
+    ("Walls-and-Ceilings", "home_maintenance"),
+    ("Washing-Machine-Repairs", "appliance"),
+    ("Washing-Machines-and-Dryers", "appliance"),
+    ("Waste-Removal-Systems", "plumbing"),
+    ("Water", "plumbing"),
+    ("Water-Filters", "plumbing"),
+    ("Water-Heating-Systems", "plumbing"),
+    ("Winterization", "hvac"),
+    ("Woodworking-Tools", "diy"),
+    ("Working-with-Concrete-and-Cement", "construction"),
+    ("Yard-and-Outdoors", "yard"),
 ]
 
 BOBVILA_CATEGORIES = [
-    ("plumbing",       "plumbing"),
-    ("hvac",           "hvac"),
-    ("appliances",     "appliance"),
-    ("flooring",       "flooring"),
-    ("roofing",        "roofing"),
-    ("windows",        "doors_windows"),
-    ("doors",          "doors_windows"),
+    ("plumbing", "plumbing"),
+    ("hvac", "hvac"),
+    ("appliances", "appliance"),
+    ("flooring", "flooring"),
+    ("roofing", "roofing"),
+    ("windows", "doors_windows"),
+    ("doors", "doors_windows"),
     ("walls-ceilings", "home_maintenance"),
-    ("diy",            "diy"),
+    ("diy", "diy"),
 ]
 
 MASTERGRAD_FORUMS = [
-    ("otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/santehnika-i-santehnicheskoe-oborudovanie", "plumbing"),
-    ("otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/vodosnabzhenie",                            "plumbing"),
-    ("otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/kanalizaciya",                              "plumbing"),
-    ("otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/otoplenie",                                 "hvac"),
-    ("otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/kotly-i-kotelnoe-oborudovanie",             "hvac"),
-    ("elektrika-i-slabotochka/elektrika",                                                                              "electrical"),
-    ("ventilyaciya-i-kondicionirovanie",                                                                               "hvac"),
-    ("okna-dveri-osteklenie-domov-i-kvartir",                                                                          "doors_windows"),
-    ("remont-kvartir-pereplanirovka-otdelka/steny-i-pereplanirovki",                                                   "home_maintenance"),
-    ("remont-kvartir-pereplanirovka-otdelka/teplyy-pol",                                                               "flooring"),
-    ("individualnye-doma-i-postroyki/pol-i-napolnye-pokrytiya",                                                        "flooring"),
-    ("individualnye-doma-i-postroyki/potolki",                                                                         "home_maintenance"),
-    ("individualnye-doma-i-postroyki/krovlya",                                                                         "roofing"),
-    ("bytovaya-tehnika-i-elektronika/holodilniki",                                                                     "appliance"),
-    ("bytovaya-tehnika-i-elektronika/stiralnye-mashiny",                                                               "appliance"),
-    ("bytovaya-tehnika-i-elektronika/posudomoechnye-mashiny",                                                          "appliance"),
-    ("bytovaya-tehnika-i-elektronika/pylesosy",                                                                        "appliance"),
-    ("stroitelnye-i-otdelochnye-materialy/plitka",                                                                     "home_maintenance"),
+    (
+        "otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/santehnika-i-santehnicheskoe-oborudovanie",
+        "plumbing",
+    ),
+    (
+        "otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/vodosnabzhenie",
+        "plumbing",
+    ),
+    (
+        "otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/kanalizaciya",
+        "plumbing",
+    ),
+    (
+        "otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/otoplenie",
+        "hvac",
+    ),
+    (
+        "otoplenie-vodosnabzhenie-kanalizaciya-i-santehnicheskoe-oborudovanie/kotly-i-kotelnoe-oborudovanie",
+        "hvac",
+    ),
+    ("elektrika-i-slabotochka/elektrika", "electrical"),
+    ("ventilyaciya-i-kondicionirovanie", "hvac"),
+    ("okna-dveri-osteklenie-domov-i-kvartir", "doors_windows"),
+    (
+        "remont-kvartir-pereplanirovka-otdelka/steny-i-pereplanirovki",
+        "home_maintenance",
+    ),
+    ("remont-kvartir-pereplanirovka-otdelka/teplyy-pol", "flooring"),
+    ("individualnye-doma-i-postroyki/pol-i-napolnye-pokrytiya", "flooring"),
+    ("individualnye-doma-i-postroyki/potolki", "home_maintenance"),
+    ("individualnye-doma-i-postroyki/krovlya", "roofing"),
+    ("bytovaya-tehnika-i-elektronika/holodilniki", "appliance"),
+    ("bytovaya-tehnika-i-elektronika/stiralnye-mashiny", "appliance"),
+    ("bytovaya-tehnika-i-elektronika/posudomoechnye-mashiny", "appliance"),
+    ("bytovaya-tehnika-i-elektronika/pylesosy", "appliance"),
+    ("stroitelnye-i-otdelochnye-materialy/plitka", "home_maintenance"),
 ]
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ОБЩИЕ УТИЛИТЫ
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def load_progress(path: str) -> dict:
     p = Path(path)
@@ -265,10 +284,14 @@ def load_progress(path: str) -> dict:
         return json.loads(p.read_text())
     return {}
 
+
 def save_progress(path: str, data: dict):
     Path(path).write_text(json.dumps(data, indent=2))
 
-def fetch_html(url: str, headers: dict, max_retries: int, timeout: int = 15) -> BeautifulSoup | None:
+
+def fetch_html(
+    url: str, headers: dict, max_retries: int, timeout: int = 15
+) -> BeautifulSoup | None:
     for attempt in range(max_retries):
         try:
             r = requests.get(url, headers=headers, timeout=timeout)
@@ -278,10 +301,11 @@ def fetch_html(url: str, headers: dict, max_retries: int, timeout: int = 15) -> 
             return BeautifulSoup(r.text, "html.parser")
         except requests.exceptions.RequestException as e:
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
             else:
                 print(f"\n  ⚠ {url}: {e}")
                 return None
+
 
 def print_stats(output_file: str):
     total = 0
@@ -295,9 +319,11 @@ def print_stats(output_file: str):
     for d, cnt in sorted(domains.items(), key=lambda x: -x[1]):
         print(f"   {d}: {cnt}")
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # IFIXIT
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def run_ifixit():
     cfg = IFIXIT
@@ -315,7 +341,7 @@ def run_ifixit():
                 return r.json()
             except requests.exceptions.RequestException as e:
                 if attempt < cfg["max_retries"] - 1:
-                    time.sleep(2 ** attempt)
+                    time.sleep(2**attempt)
                 else:
                     print(f"\n  ⚠ {url}: {e}")
                     return None
@@ -347,7 +373,9 @@ def run_ifixit():
         step_docs = []
         for i, step in enumerate(steps, 1):
             text = " ".join(
-                line.get("text_raw", "") for line in step.get("lines", []) if line.get("text_raw")
+                line.get("text_raw", "")
+                for line in step.get("lines", [])
+                if line.get("text_raw")
             ).strip()
             if text:
                 step_docs.append(f"Step {i}: {text}")
@@ -398,17 +426,31 @@ def run_ifixit():
             out.write(json.dumps(doc, ensure_ascii=False) + "\n")
             out.flush()
             done_ids.add(guide_id)
-            save_progress(cfg["progress"], {"done_categories": list(done_categories), "done_guide_ids": list(done_ids)})
+            save_progress(
+                cfg["progress"],
+                {
+                    "done_categories": list(done_categories),
+                    "done_guide_ids": list(done_ids),
+                },
+            )
 
         done_categories.add(category)
-        save_progress(cfg["progress"], {"done_categories": list(done_categories), "done_guide_ids": list(done_ids)})
+        save_progress(
+            cfg["progress"],
+            {
+                "done_categories": list(done_categories),
+                "done_guide_ids": list(done_ids),
+            },
+        )
 
     out.close()
     print_stats(output)
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # WIKIHOW
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def run_wikihow():
     cfg = WIKIHOW
@@ -424,13 +466,22 @@ def run_wikihow():
     }
 
     wikihow_noise = [
-        'Download Article', 'Co-authored by', 'Last Updated', 'Fact Checked',
-        'Show more', 'Show less', 'Expert Interview', 'wikiHow staff writer', 'wikiHow Staff',
+        "Download Article",
+        "Co-authored by",
+        "Last Updated",
+        "Fact Checked",
+        "Show more",
+        "Show less",
+        "Expert Interview",
+        "wikiHow staff writer",
+        "wikiHow Staff",
     ]
 
     def clean_text(text):
-        parts = text.split('\n\n')
-        return '\n\n'.join(p for p in parts if not any(n in p for n in wikihow_noise)).strip()
+        parts = text.split("\n\n")
+        return "\n\n".join(
+            p for p in parts if not any(n in p for n in wikihow_noise)
+        ).strip()
 
     def get_article_urls(slug):
         urls, seen = [], set()
@@ -441,8 +492,15 @@ def run_wikihow():
                 break
             for a in soup.find_all("a", href=True):
                 href = a["href"]
-                if (href.startswith("/") and "Category:" not in href and "Special:" not in href
-                        and "action=" not in href and "?" not in href and href not in seen and len(href) > 3):
+                if (
+                    href.startswith("/")
+                    and "Category:" not in href
+                    and "Special:" not in href
+                    and "action=" not in href
+                    and "?" not in href
+                    and href not in seen
+                    and len(href) > 3
+                ):
                     seen.add(href)
                     urls.append(base_url + href)
             next_link = soup.find("a", string=lambda t: t and "next" in t.lower())
@@ -483,8 +541,11 @@ def run_wikihow():
         full_text = clean_text("\n\n".join(parts))
         if not full_text or len(full_text) < 100:
             return None
-        cats = [a.get_text(strip=True) for a in soup.select("div#breadcrumb a, nav.breadcrumb a")
-                if a.get_text(strip=True) not in ("wikiHow", "Home")]
+        cats = [
+            a.get_text(strip=True)
+            for a in soup.select("div#breadcrumb a, nav.breadcrumb a")
+            if a.get_text(strip=True) not in ("wikiHow", "Home")
+        ]
         return {
             "source": "wikihow",
             "domain": domain,
@@ -521,18 +582,29 @@ def run_wikihow():
             out.flush()
             saved += 1
             done_urls.add(url)
-            save_progress(cfg["progress"], {"done_categories": list(done_categories), "done_urls": list(done_urls)})
+            save_progress(
+                cfg["progress"],
+                {
+                    "done_categories": list(done_categories),
+                    "done_urls": list(done_urls),
+                },
+            )
 
         print(f"     Сохранено: {saved}")
         done_categories.add(slug)
-        save_progress(cfg["progress"], {"done_categories": list(done_categories), "done_urls": list(done_urls)})
+        save_progress(
+            cfg["progress"],
+            {"done_categories": list(done_categories), "done_urls": list(done_urls)},
+        )
 
     out.close()
     print_stats(output)
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # BOBVILA
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def run_bobvila():
     cfg = BOBVILA
@@ -548,17 +620,43 @@ def run_bobvila():
     }
 
     noise_phrases = [
-        "We may earn revenue from the products available", "participate in affiliate programs",
-        "Home Advice You Can Trust", "Tips, tricks & ideas for a better home",
-        "delivered to your inbox", "Email address", "Sign Up", "Thank you!",
-        "Terms of Service", "Privacy Policy", "Learn More", "Photo:", "RELATED:",
-        "I Made This One Smart Investment", "Bob Vila Radio:",
+        "We may earn revenue from the products available",
+        "participate in affiliate programs",
+        "Home Advice You Can Trust",
+        "Tips, tricks & ideas for a better home",
+        "delivered to your inbox",
+        "Email address",
+        "Sign Up",
+        "Thank you!",
+        "Terms of Service",
+        "Privacy Policy",
+        "Learn More",
+        "Photo:",
+        "RELATED:",
+        "I Made This One Smart Investment",
+        "Bob Vila Radio:",
     ]
 
     diy_skip = [
-        "Best ", "Tested", "Reviewed", "Expert Pick", "Permaculture", "Coconut Oil",
-        "Garden", "Seeds Indoor", "Upholstery Cleaner", "Snow Blower", "Lawn Mower",
-        "Welding", "Sawhorse", "Jointer", "Planer", "Fire Ant", "Ice Dam", "Wildlife", "Bird",
+        "Best ",
+        "Tested",
+        "Reviewed",
+        "Expert Pick",
+        "Permaculture",
+        "Coconut Oil",
+        "Garden",
+        "Seeds Indoor",
+        "Upholstery Cleaner",
+        "Snow Blower",
+        "Lawn Mower",
+        "Welding",
+        "Sawhorse",
+        "Jointer",
+        "Planer",
+        "Fire Ant",
+        "Ice Dam",
+        "Wildlife",
+        "Bird",
     ]
 
     def is_noise(text):
@@ -567,7 +665,11 @@ def run_bobvila():
     def get_article_urls(slug):
         urls, seen = [], set()
         for page in range(1, cfg["max_pages"] + 1):
-            url = f"{base_url}/category/{slug}/" if page == 1 else f"{base_url}/category/{slug}/page/{page}/"
+            url = (
+                f"{base_url}/category/{slug}/"
+                if page == 1
+                else f"{base_url}/category/{slug}/page/{page}/"
+            )
             soup = fetch_html(url, headers, cfg["max_retries"])
             if not soup:
                 break
@@ -653,18 +755,29 @@ def run_bobvila():
             out.flush()
             saved += 1
             done_urls.add(url)
-            save_progress(cfg["progress"], {"done_categories": list(done_categories), "done_urls": list(done_urls)})
+            save_progress(
+                cfg["progress"],
+                {
+                    "done_categories": list(done_categories),
+                    "done_urls": list(done_urls),
+                },
+            )
 
         print(f"     Сохранено: {saved}")
         done_categories.add(slug)
-        save_progress(cfg["progress"], {"done_categories": list(done_categories), "done_urls": list(done_urls)})
+        save_progress(
+            cfg["progress"],
+            {"done_categories": list(done_categories), "done_urls": list(done_urls)},
+        )
 
     out.close()
     print_stats(output)
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 # MASTERGRAD
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def run_mastergrad():
     cfg = MASTERGRAD
@@ -682,13 +795,25 @@ def run_mastergrad():
     def get_thread_urls(forum_slug):
         threads, seen = [], set()
         for page in range(1, cfg["max_pages"] + 1):
-            url = f"{base_url}/forums/{forum_slug}/" if page == 1 else f"{base_url}/forums/{forum_slug}/?page={page}"
+            url = (
+                f"{base_url}/forums/{forum_slug}/"
+                if page == 1
+                else f"{base_url}/forums/{forum_slug}/?page={page}"
+            )
             soup = fetch_html(url, headers, cfg["max_retries"], timeout=30)
             if not soup:
                 break
             found = 0
             for row in soup.select("div.row-with-arrow"):
-                a = row.find("a", href=lambda h: h and h.startswith("/forums/t") and "#" not in h and "?" not in h)
+                a = row.find(
+                    "a",
+                    href=lambda h: (
+                        h
+                        and h.startswith("/forums/t")
+                        and "#" not in h
+                        and "?" not in h
+                    ),
+                )
                 if not a:
                     continue
                 href = a["href"]
@@ -703,7 +828,7 @@ def run_mastergrad():
                 break
             time.sleep(cfg["delay"])
         threads.sort(key=lambda x: x[0], reverse=True)
-        return [url for _, url in threads[:cfg["top_threads"]]]
+        return [url for _, url in threads[: cfg["top_threads"]]]
 
     def extract_posts(soup):
         posts = []
@@ -711,11 +836,15 @@ def run_mastergrad():
         if not container:
             return posts
         for post_div in container.select("div.my-2"):
-            for el in post_div.select(".author-info, .d-flex.justify-content-between, .btn, .dropdown"):
+            for el in post_div.select(
+                ".author-info, .d-flex.justify-content-between, .btn, .dropdown"
+            ):
                 el.decompose()
-            content = (post_div.find("div", class_="pagetext")
-                       or post_div.find("div", class_="post-full")
-                       or post_div)
+            content = (
+                post_div.find("div", class_="pagetext")
+                or post_div.find("div", class_="post-full")
+                or post_div
+            )
             text = content.get_text(" ", strip=True)
             if len(text) >= cfg["min_post_len"]:
                 posts.append(text)
@@ -732,7 +861,9 @@ def run_mastergrad():
         all_posts = extract_posts(soup)
         seen_posts = set(all_posts)
         for page in range(2, cfg["max_thread_pages"] + 1):
-            psoup = fetch_html(f"{url}?page={page}", headers, cfg["max_retries"], timeout=30)
+            psoup = fetch_html(
+                f"{url}?page={page}", headers, cfg["max_retries"], timeout=30
+            )
             if not psoup:
                 break
             new_posts = [p for p in extract_posts(psoup) if p not in seen_posts]
@@ -744,7 +875,7 @@ def run_mastergrad():
         if len(all_posts) < 2:
             return None
         full_text = f"Вопрос: {all_posts[0]}\n\n" + "\n\n".join(
-            f"Ответ {i+1}: {a}" for i, a in enumerate(all_posts[1:])
+            f"Ответ {i + 1}: {a}" for i, a in enumerate(all_posts[1:])
         )
         return {
             "source": "mastergrad",
@@ -768,7 +899,9 @@ def run_mastergrad():
         print(f"     Тредов: {len(thread_urls)} всего, {len(new_urls)} новых")
 
         saved = 0
-        for url in tqdm(new_urls, desc=f"     {forum_slug.split('/')[-1]}", unit="thread"):
+        for url in tqdm(
+            new_urls, desc=f"     {forum_slug.split('/')[-1]}", unit="thread"
+        ):
             time.sleep(cfg["delay"])
             doc = scrape_thread(url, domain)
             if not doc:
@@ -777,32 +910,41 @@ def run_mastergrad():
             out.flush()
             saved += 1
             done_urls.add(url)
-            save_progress(cfg["progress"], {"done_forums": list(done_forums), "done_urls": list(done_urls)})
+            save_progress(
+                cfg["progress"],
+                {"done_forums": list(done_forums), "done_urls": list(done_urls)},
+            )
 
         print(f"     Сохранено: {saved}")
         done_forums.add(forum_slug)
-        save_progress(cfg["progress"], {"done_forums": list(done_forums), "done_urls": list(done_urls)})
+        save_progress(
+            cfg["progress"],
+            {"done_forums": list(done_forums), "done_urls": list(done_urls)},
+        )
 
     out.close()
     print_stats(output)
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
 RUNNERS = {
-    "ifixit":     run_ifixit,
-    "wikihow":    run_wikihow,
-    "bobvila":    run_bobvila,
+    "ifixit": run_ifixit,
+    "wikihow": run_wikihow,
+    "bobvila": run_bobvila,
     "mastergrad": run_mastergrad,
 }
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SmartHandyman scraper")
     parser.add_argument(
-        "--sources", nargs="+", choices=RUNNERS.keys(),
+        "--sources",
+        nargs="+",
+        choices=RUNNERS.keys(),
         default=list(RUNNERS.keys()),
-        help="Источники для парсинга (по умолчанию все)"
+        help="Источники для парсинга (по умолчанию все)",
     )
     args, _ = parser.parse_known_args()  # ignore jupyter args
 

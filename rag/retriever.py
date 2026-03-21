@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from config import CHROMA_DB_PATH, EMBEDDING_MODEL
+from config import EMBEDDING_MODEL
 
 # Всегда абсолютный путь
 BASE_DIR = Path(__file__).resolve().parent
@@ -17,6 +17,7 @@ print("Looking for index at:", INDEX_DIR / "index.faiss")
 
 # Синглтон
 _retriever_instance: Optional["Retriever"] = None
+
 
 def load_retriever() -> "Retriever":
     global _retriever_instance
@@ -50,7 +51,9 @@ class Retriever:
         self._model = SentenceTransformer(model_name)
 
         self._ready = True
-        print(f"[Retriever] Загружено {self._index.ntotal} векторов, модель: {model_name}")
+        print(
+            f"[Retriever] Загружено {self._index.ntotal} векторов, модель: {model_name}"
+        )
 
     def search(self, query: str, k: int = 5, min_score: float = 0.0) -> List[Dict]:
         if not getattr(self, "_ready", False):
@@ -72,11 +75,13 @@ class Retriever:
             if text.startswith("passage: "):
                 text = text[9:]
             meta = self._meta[idx] if idx < len(self._meta) else {}
-            results.append({
-                "score": round(float(score), 4),
-                "text": text,
-                "source": meta.get("source"),
-                "title": meta.get("title"),
-                "provider": meta.get("provider"),
-            })
+            results.append(
+                {
+                    "score": round(float(score), 4),
+                    "text": text,
+                    "source": meta.get("source"),
+                    "title": meta.get("title"),
+                    "provider": meta.get("provider"),
+                }
+            )
         return results

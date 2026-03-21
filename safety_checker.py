@@ -6,10 +6,7 @@ from config import TEXT_MODEL
 
 
 class SafetyChecker:
-    """Evaluates repair safety and generates appropriate warnings."""
-
     def __init__(self):
-        """Initializes the safety analyzer using the text LLM."""
         self.client = LLMClient(TEXT_MODEL, use_vision=False)
 
     def check_safety(self, analysis_result, user_answers=None):

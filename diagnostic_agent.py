@@ -6,12 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 class DiagnosticAgent:
-    """
-    Interactive agent for detailed problem diagnosis.
-
-    Uses medium-low temperature for logical, focused questioning.
-    """
-
     def __init__(self):
         self.client = LLMClient(
             TEXT_MODEL,
@@ -22,10 +16,6 @@ class DiagnosticAgent:
 
     def generate_questions(self, analysis_result, previous_answers=None):
         """
-        Generate diagnostic questions based on analysis and previous answers.
-
-        Uses logical reasoning to narrow down possible causes.
-
         Args:
             analysis_result: Initial vision analysis
             previous_answers: Dict of previous Q&A pairs
@@ -75,8 +65,6 @@ class DiagnosticAgent:
 
     def analyze_answers(self, analysis_result, qa_pairs):
         """
-        Analyze user answers to refine diagnosis.
-
         Args:
             analysis_result: Initial vision analysis
             qa_pairs: Dict of question-answer pairs
